@@ -1,4 +1,6 @@
 export type RGBColor = [red: number, green: number, blue: number, alpha?: number];
+export type HSLColor = [hue: number, saturation: number, lightness: number];
+
 
 export const hexToRGB = (hex: string): RGBColor => {
     // Remove # if it exists
@@ -65,6 +67,40 @@ export const RGBToHex = ([red, green, blue, alpha]: RGBColor): string => {
     return hex;
 }
 
+export const RGBToHSL = ([red, green, blue]: RGBColor) => {
+    /* https://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion */
+    red /= 255; green /= 255; blue /= 255;
+    let max = Math.max(red, green, blue),
+        min = Math.min(red, green, blue);
+    let hue = 0,
+        saturation,
+        lightness = (max + min) / 2;
+
+
+    if (max === min) {
+        hue = saturation = 0;
+    } else {
+        let diff = max - min;
+        saturation = lightness > 0.5 ? diff / (2 - max - min) : diff / (max + min);
+
+        switch (max) {
+            case red:
+                hue = (green - blue) / diff + (green < blue ? 6 : 0);
+                break;
+            case green:
+                hue = (blue - red) / diff + 2;
+                break;
+            case blue:
+                hue = (red - green) / diff + 4;
+                break;
+        }
+
+        hue = hue / 6;
+    }
+
+    return [hue, saturation, lightness];
+}
+
 export const createColorVariant = ([red, green, blue, alpha]: RGBColor, modifier: number): RGBColor => {
     const sum = red + green + blue;
     const targetSum = sum + modifier;
@@ -81,12 +117,7 @@ export const createColorVariant = ([red, green, blue, alpha]: RGBColor, modifier
         }
         return num;
     }
-    console.log([
-        modifyColor(red),
-        modifyColor(green),
-        modifyColor(blue),
-        alpha
-    ])
+
     return [
         modifyColor(red),
         modifyColor(green),
