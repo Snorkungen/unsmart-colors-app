@@ -2,11 +2,11 @@
 import Card from './Card.vue';
 import CardHeader from './CardHeader.vue';
 import { ref } from 'vue';
-import { hexToRGB, RGBColor, generateVariants } from "../lib/color";
-import ColorSquare from './ColorSquare.vue';
+import { hexToRGB, RGBColor, generateVariants, RGBToHSL, HSLToRGB, rotateHue } from "../lib/color";
+import ColorSquareRow from './ColorSquareRow.vue';
 
-let rgb: RGBColor = [50,10,200, 1];
-let colors = ref<RGBColor[]>(generateVariants(rgb, 26));
+let rgb: RGBColor = [50, 10, 200, 1];
+let colorsMatrix = ref<Array<Array<RGBColor>>>([generateVariants(rgb, 26), generateVariants(rgb, 10)])
 
 const handleInput: HTMLInputElement["oninput"] = (event) => {
     if (!event.target || !(event.target instanceof HTMLInputElement)) return;
@@ -14,7 +14,15 @@ const handleInput: HTMLInputElement["oninput"] = (event) => {
 
     let rgb = hexToRGB(value);
 
-    colors.value = generateVariants(rgb, 20)
+    let hsl = RGBToHSL(rgb)
+    colorsMatrix.value = [
+        generateVariants(rgb, 20),
+        generateVariants(HSLToRGB(rotateHue(hsl, 60)), 35),
+        generateVariants(HSLToRGB(rotateHue(hsl, 60 * 3)), 35),
+        generateVariants(HSLToRGB(rotateHue(hsl, -60)), 35),
+    ]
+
+
 }
 
 </script>
@@ -26,17 +34,14 @@ const handleInput: HTMLInputElement["oninput"] = (event) => {
             Select Color
         </CardHeader>
         <input type="color" @input="handleInput">
-        <div class="flex">
-            <div v-for="color in colors">
-                <ColorSquare :color="color" />
-            </div>
+        <div v-for="colors in colorsMatrix">
+            <ColorSquareRow :colors="colors" />
         </div>
     </Card>
 </template>
 
 <style scoped>
-    .flex {
-        display: flex;
-    }
-
+.flex {
+    display: flex;
+}
 </style>
