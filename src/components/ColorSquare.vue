@@ -6,7 +6,9 @@ defineProps<{
     color: RGBColor
 }>()
 
-const click = (c: any) => { console.log(c.join(" ")) }
+const click = (c: any) => {
+    console.log(c.join(" "), RGBToHex(c))
+}
 
 </script>
 
@@ -19,7 +21,7 @@ const click = (c: any) => { console.log(c.join(" ")) }
     $size: 40px;
     width: $size;
     height: $size;
-    // border-radius: 3px;
+    border-radius: 3px;
     background-color: v-bind("RGBToHex(color,true)");
 }
 </style>

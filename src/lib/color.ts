@@ -48,7 +48,7 @@ const numToHexValue = (num: number): string => {
         // Throw error
     }
 
-    let value = num.toString(16);
+    let value = Math.round(num).toString(16);
 
     if (num < 16) {
         value = "0" + value;
@@ -223,4 +223,32 @@ export const contrastingColor = (rgb: RGBColor) => {
     return result;
 }
 
+export const RGBToLuminance = ([red, green, blue]: RGBColor, algo: 0 | 1 = 1): number => {
+    // https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color#answer-56678483
+
+    let linear = (val: number) => val <= 0.04045 ?
+        val / 12.92 :
+        Math.pow((val + 0.055) / 1.055, 2.4);
+
+    let vR = red / 255,
+        vG = green / 255,
+        vB = blue / 255;
+
+    return (
+        0.2126 * linear(vR) + 0.7152 * linear(vG) + 0.0722 * linear(vB)
+    );
+}
+
 export * from "./hsl";
+
+/*
+    Percieved Brightness
+    http://alienryderflex.com/hsp.html
+    Y = sqrt (0.299 * R² + 0.587 * G² + 0.114 * B²)
+    return Math.sqrt(
+        0.299 * Math.pow(red, 2) +
+        0.587 * Math.pow(green, 2) +
+        0.114 * Math.pow(blue, 2)
+    )
+
+*/

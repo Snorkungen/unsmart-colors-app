@@ -1,11 +1,11 @@
 :root {
-    --color1: rgb(240 126 23)
+    --color3: #ecfc95;
         /*#4ed3aa */
     ;
-    --color2: rgb(254 254 254  )
+    --color1: #787e17;
         /* #fefef3*/
     ;
-    --color3: rgb(27 162 255)
+    --color2: #1d187e;
         /*#270f69*/
     ;
     --color4: #f43444;
@@ -22,4 +22,6 @@ body,
 #app {
     height: 100%;
     width: 100%;
+
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
