@@ -1,3 +1,5 @@
+import { HSLToRGB } from "./hsl";
+
 export type RGBColor = [red: number, green: number, blue: number, alpha?: number];
 export type HSLColor = [hue: number, saturation: number, lightness: number];
 
@@ -55,13 +57,13 @@ const numToHexValue = (num: number): string => {
     return value;
 }
 
-export const RGBToHex = ([red, green, blue, alpha]: RGBColor): string => {
+export const RGBToHex = ([red, green, blue, alpha]: RGBColor, setAlpha = false): string => {
     let hex = "#";
     hex += numToHexValue(red);
     hex += numToHexValue(green);
     hex += numToHexValue(blue);
 
-    if (alpha) {
+    if (setAlpha && alpha) {
         hex += numToHexValue(alpha * 255);
     }
     return hex;
@@ -110,6 +112,115 @@ export const generateVariants = (rgb: RGBColor, stepSize: number, variantCount =
     }
 
     return variants;
+}
+
+export const generateVariants_2 = (rgb: RGBColor, direction: -1 | 1 = 1, count = 10): Array<RGBColor> => {
+    let sum = rgb[0] + rgb[1] + rgb[2], white = 255 * 3, black = 30 * 3, diff;
+
+    if (direction < 0) {
+        diff = sum - black;
+    } else {
+        diff = white - sum;
+    }
+
+    let step = Math.floor(sum / count);
+    let variants: Array<RGBColor> = [];
+    for (let i = 1; i <= count; i++) {
+        variants.push(
+            createColorVariant(rgb,
+                (step * i) * direction
+            )
+        )
+    }
+
+    return variants;
+}
+
+export const ruinColor = ([red, green, blue, alpha]: RGBColor): RGBColor => {
+    const sum = red + green + blue;
+    const max = Math.max(red, green, blue),
+        min = Math.min(red, green, blue)
+
+    if (max > (sum / 2)) {
+        switch (max) {
+            case red:
+                red = min;
+            case green:
+                green = min;
+            case blue:
+                blue = min;
+        }
+    } else {
+        switch (min) {
+            case red:
+                red = max;
+            case green:
+                green = max;
+            case blue:
+                blue = max;
+        }
+    }
+
+    return [red, green, blue, alpha];
+}
+export const ruinColor_2 = ([red, green, blue, alpha]: RGBColor): RGBColor => {
+    const sum = red + green + blue;
+    const max = Math.max(red, green, blue),
+        min = Math.min(red, green, blue)
+
+
+    switch (max) {
+        case red:
+            red = 0;
+        case green:
+            green = 0;
+        case blue:
+            blue = 0;
+    }
+
+
+    return [red, green, blue, alpha];
+}
+
+export const colorLuminance = ([red, green, blue]: RGBColor) => {
+    const a = [red, green, blue].map((n) => {
+        n /= 255;
+        return n <= 0.03928 ?
+            n / 12.92 :
+            Math.pow((n + 0.055) / 1.055, 2.4)
+    });
+
+    return (a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722);
+}
+const contrastRatio = (c1: RGBColor, c2: RGBColor) => {
+    let l1 = colorLuminance(c1),
+        l2 = colorLuminance(c2);
+    let light = Math.max(l1, l2),
+        dark = Math.min(l1, l2);
+
+    return (light + 0.05) / (dark + 0.05);
+}
+
+const createRandomColor = (): RGBColor => {
+    return HSLToRGB([Math.random(), Math.random(), Math.random()]);
+}
+
+export const contrastingColor = (rgb: RGBColor) => {
+    let attempts = 0, result = rgb;
+    let attemptLimit = 2500;
+    while (attempts < attemptLimit) {
+        result = createRandomColor()
+        if (contrastRatio(rgb, result) > 4) {
+            break
+        }
+        attempts++;
+    }
+
+    if (attempts == attemptLimit) {
+        return rgb
+    }
+
+    return result;
 }
 
 export * from "./hsl";

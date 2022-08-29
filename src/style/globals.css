@@ -1,8 +1,14 @@
 :root {
-    --color1 : #4ed3aa;
-    --color2 : #fefef3;
-    --color3 : #270f69;
-    --color4 : #f43444;
+    --color1: rgb(240 126 23)
+        /*#4ed3aa */
+    ;
+    --color2: rgb(254 254 254  )
+        /* #fefef3*/
+    ;
+    --color3: rgb(27 162 255)
+        /*#270f69*/
+    ;
+    --color4: #f43444;
 }
 
 * {

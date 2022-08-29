@@ -2,12 +2,13 @@
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 
-import ColorCardSelect from "./components/ColorCardSelect.vue";
+import ThemePreview from "./components/ThemePreview.vue";
+import Theme from "./lib/theme";
 </script>
 
 <template>
   <div class="page-container center-content">
-    <ColorCardSelect />
+    <ThemePreview :theme="new Theme([240, 126, 23])" />
   </div>
 </template>
 
