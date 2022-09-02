@@ -7,8 +7,8 @@
 <style lang="scss" scoped>
     .card {
         // max-width: 460px;
-        background: var(--color3);
-        color: var(--color2);
+        background: var(--foreground);
+        color: var(--text);
 
         padding: 1em;
         border-radius: 5px;

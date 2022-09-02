@@ -5,14 +5,17 @@ import { ref } from "vue";
 
 import ThemePreview from "./components/ThemePreview.vue";
 import Theme from "./lib/theme";
+import Theme2 from "./lib/theme";
 import Button from "./components/Button.vue";
+import { ruinColor, createRandomColor } from "./lib/color";
 
+let color = createRandomColor();
 let onClick = () => {
-  theme.value = new Theme([239, 126, 23]);
+  color = createRandomColor();
+  theme.value = new Theme2(color);
 }
 
-
-const theme = ref(new Theme([0, 0, 0]))
+const theme = ref(new Theme2([...color]))
 
 </script>
 
@@ -28,8 +31,8 @@ const theme = ref(new Theme([0, 0, 0]))
   height: 100%;
   width: 100%;
 
-  background: var(--color1);
-  color: var(--color2);
+  background: var(--background);
+  color: var(--foreground);
 
   &.center-content {
     display: grid;

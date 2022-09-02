@@ -201,7 +201,7 @@ const contrastRatio = (c1: RGBColor, c2: RGBColor) => {
     return (light + 0.05) / (dark + 0.05);
 }
 
-const createRandomColor = (): RGBColor => {
+export const createRandomColor = (): RGBColor => {
     return HSLToRGB([Math.random(), Math.random(), Math.random()]);
 }
 
@@ -223,7 +223,7 @@ export const contrastingColor = (rgb: RGBColor) => {
     return result;
 }
 
-export const RGBToLuminance = ([red, green, blue]: RGBColor, algo: 0 | 1 = 1): number => {
+export const RGBToLuminance = ([red, green, blue]: RGBColor): number => {
     // https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color#answer-56678483
 
     let linear = (val: number) => val <= 0.04045 ?

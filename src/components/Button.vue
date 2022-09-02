@@ -1,10 +1,3 @@
-<script lang="ts" setup>
-import { defineProps } from "vue";
-// const { onClick } = defineProps<{
-//     onClick: (event: any) => void
-// }>();
-
-</script>
 
 <template>
     <button  class="button">
