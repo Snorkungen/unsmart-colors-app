@@ -1,5 +1,4 @@
 import { RGBColor, RGBToLuminance, RGBToHex, createColorVariant, RGBToHSL, HSLToRGB, rotateHue, hexToRGB, HSLColor, createRandomColor } from "./color";
-import { generateContrastingColor } from "./generateColor";
 
 interface Color {
     rgb: RGBColor;
