@@ -1,4 +1,5 @@
 import { RGBColor, RGBToLuminance, RGBToHex, createColorVariant, RGBToHSL, HSLToRGB, rotateHue, hexToRGB, HSLColor, createRandomColor } from "./color";
+import { ColorEntries, colors } from "./colors";
 
 interface Color {
     rgb: RGBColor;
@@ -10,16 +11,6 @@ interface Color {
 interface ColorWithVariants extends Color {
     variants: Array<Color>;
 }
-
-/* 
-    Todo 
-
-    create a foreground which has ok contrast with primary & secondary
-    create a background which has ok contrast with primary & secondary
-
-    figure out how to make (info, warning, danger, success) colors match the theme
-
-*/
 
 export default class Theme {
     primary: ColorWithVariants;
@@ -33,11 +24,10 @@ export default class Theme {
 
     constructor(primary: RGBColor) {
         this.primary = Theme.initColorWithVariants(primary);
-        this.secondary = Theme.initColorWithVariants(
-            HSLToRGB(rotateHue(RGBToHSL(primary), 60 * 3))
-        );
-
+        
         this.foreground = Theme.generateContrastingColor(this.primary)
+        this.secondary = Theme.generateContrastingColor(this.foreground)
+
         this.background = Theme.generateContrastingColor(this.foreground, 7)
         this.info = Theme.info;
         this.warning = Theme.warning;
@@ -131,82 +121,37 @@ export default class Theme {
         return 1 / (ratio - n * this.CONTRAST_RATIO_NUM) / n - this.CONTRAST_RATIO_NUM;
     }
 
-    static generateContrastingColor(color: Color, ratio = 4.5, n = 0): ColorWithVariants {
+    static generateContrastingColor(color: Color, ratio = 4.5): ColorWithVariants {
         let targetLuminance = this.derriveLuminance(ratio, color.luminance);
 
-        if (n >= 10) {
-
-            return this.initColorWithVariants(targetLuminance < 0.5 ? this.BLACK_RGB : this.WHITE_RGB);
-
-        }
         if (targetLuminance < this.MIN_LUMINANCE) {
             return this.initColorWithVariants(this.BLACK_RGB)
         } else if (targetLuminance > this.MAX_LUMINANCE) {
             return this.initColorWithVariants(this.WHITE_RGB);
         }
         let newColorIsDarker = color.luminance > targetLuminance;
-        let randomInteger = (min: number, max: number) => (Math.floor(Math.random() * (max - min) + min))
 
+        let colorEntries = colors.reduce<ColorEntries>((found, entry) => {
+            let [, , luminance] = entry;
+            if (
+                (newColorIsDarker && luminance < targetLuminance) ||
+                (!newColorIsDarker && luminance > targetLuminance)
+            ) return [...found, entry];
+            return found;
+        }, []).sort();
 
-        let minSum = 0, maxSum = 255 * 3;
+        let colorEntry = colors.find(([, , luminance]) => (
+            (newColorIsDarker && luminance < targetLuminance) ||
+            (!newColorIsDarker && luminance > targetLuminance)
+        ));
 
-        if (newColorIsDarker) {
-            maxSum = maxSum * targetLuminance;
-        } else {
-            minSum = maxSum * targetLuminance
+        if (colorEntries.length) {
+            return this.initColorWithVariants(newColorIsDarker ? colorEntries[colorEntries.length - 1][0] : colorEntries[0][0])
         }
-
-        const RED_M = 0.2126,
-            GREEN_M = 0.7152,
-            BLUE_M = 0.0722;
-
-        if (newColorIsDarker) {
-            let cc = [randomInteger(0, maxSum * RED_M + 1),
-            randomInteger(0, maxSum * GREEN_M + 1),
-            randomInteger(0, maxSum * BLUE_M + 1)
-            ] as RGBColor;
-
-            if (RGBToLuminance(cc) < targetLuminance) {
-                return this.initColorWithVariants(cc);
-            }
-
-
-        } else {
-            // Generate Color Try to fix fail
-            const MAX_ATTEMPTS = 50;
-            let attempts = 0;
-            let rStart = (255 * targetLuminance) * (1 - RED_M),
-                gStart = (255 * targetLuminance) * (1 - GREEN_M),
-                bStart = (255 * targetLuminance) * (1 - BLUE_M);
-
-            while (attempts < MAX_ATTEMPTS) {
-                let cc = [
-                    randomInteger(rStart, 256),
-                    randomInteger(gStart, 256),
-                    randomInteger(bStart, 256)
-                ] as RGBColor;
-
-                if (RGBToLuminance(cc) > targetLuminance) {
-                    return this.initColorWithVariants(cc);
-                }
-
-                if (rStart < 255) {
-                    rStart += 1 / RED_M;
-                } else if (gStart < 255) {
-                    gStart += 1 / GREEN_M;
-                } else {
-                    bStart += 1 / BLUE_M;
-                }
-
-
-
-                attempts++;
-            }
-        }
-
-        return this.generateContrastingColor(color, ratio, n + 1)
-
+        console.log("jshjdk")
+        return this.initColorWithVariants(targetLuminance < 0.5 ? this.BLACK_RGB : this.WHITE_RGB);
     }
+
 }
 
 
