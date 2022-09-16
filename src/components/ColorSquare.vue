@@ -7,7 +7,9 @@ defineProps<{
 }>()
 
 const click = (c: any) => {
-    console.log(c.join(" "), RGBToHex(c))
+    console.log(
+        c.slice(0, 3).join(" "), RGBToHex(c)
+    )
 }
 
 </script>
@@ -18,7 +20,9 @@ const click = (c: any) => {
 
 <style lang="scss" scoped>
 .square {
-    $size: 40px;
+    display: inline-block;
+    margin: 0 4px;
+    $size: 1em;
     width: $size;
     height: $size;
     border-radius: 3px;

@@ -1,19 +1,28 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+import { hexToRGB } from '../lib/color';
 import { colors } from '../lib/colors';
 import Theme from '../lib/theme';
 import Button from './Button.vue';
 
+const colorRef = ref<string>();
 
-let { setTheme } = defineProps<{
+let { setTheme, theme} = defineProps<{
     setTheme: (theme: Theme) => void
+    theme: Theme
 }>();
 
 
-
 const generate = () => {
+    let entry = colors[Math.floor(Math.random() * colors.length)];
     setTheme(new Theme(
-        colors[Math.floor(Math.random() * colors.length)][0]
+        entry[0]
     ))
+}
+
+const handleColorInput: HTMLInputElement["oninput"] = (event) => {
+    if (!(event.target instanceof HTMLInputElement)) return;
+    setTheme(new Theme(hexToRGB(event.target.value)))
 }
 
 </script>
@@ -21,18 +30,39 @@ const generate = () => {
 <template>
     <nav>
         <h1>UnSmart Colors App</h1>
-        <Button @click="generate" variant="secondary">Generate!</Button>
+        <div>
+            <input @input="handleColorInput" type="color" :value="theme.primary.hex" />
+            <Button @click="generate">Generate!</Button>
+        </div>
     </nav>
 </template>
 
-<style scoped>
+<style scope lang="scss">
 nav {
     display: flex;
     flex-direction: row;
     align-items: center;
+    flex-wrap: wrap;
     justify-content: space-around;
 
     background-color: var(--primary);
     color: var(--foreground);
+
+    >div {
+        display: grid;
+        grid-template-columns: auto auto;
+        place-items: center;
+    }
+
+    input[type="color"] {
+        border: none;
+        $size : 30px;
+        width: $size;
+        height: $size;
+
+        &:hover {
+            cursor: pointer;
+        }
+    }
 }
 </style>

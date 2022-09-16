@@ -54,5 +54,5 @@ export const HSLToRGB = ([hue, saturation, lightness]: HSLColor): RGBColor => {
 }
 
 export const rotateHue = ([hue, ...rest]: HSLColor, amount: number): HSLColor => {
-    return [(hue * 360 + amount) / 360, ...rest];
+    return [(hue + amount / 360) % 1, ...rest];
 }

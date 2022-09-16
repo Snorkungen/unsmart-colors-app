@@ -6,26 +6,97 @@ import { colors } from "./lib/colors";
 import Theme from "./lib/theme";
 
 import ThemePreview from "./components/ThemePreview.vue";
-import Button from "./components/Button.vue";
-import Card from "./components/Card.vue";
-import ColorSquare from "./components/ColorSquare.vue";
 import Navbar from "./components/Navbar.vue";
+import ColorSquare from "./components/ColorSquare.vue";
+import { hexToRGB } from "./lib/color";
 
 const setTheme = (value: Theme) => {
+  window.location.hash = value.primary.hex
   theme.value = value
 }
-const theme = ref(new Theme(colors[Math.floor(Math.random() * 800)][0]))
+
+let startColor = colors[Math.floor(Math.random() * 800)][0]
+if (location.hash) {
+  startColor = hexToRGB(location.hash)
+}
+
+const theme = ref(new Theme(startColor));
 
 </script>
 
 <template>
   <div id="page-wrapper">
-    <Navbar :set-theme="setTheme" />
+    <Navbar :theme="theme" :set-theme="setTheme" />
     <main>
-      <h2>Hello World</h2>
-      <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Perspiciatis, numquam voluptate deserunt dicta reprehenderit assumenda voluptates quibusdam, voluptatum obcaecati dolore ad porro inventore deleniti magnam distinctio fugiat a pariatur minus?</p>
-      <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Perspiciatis, numquam voluptate deserunt dicta reprehenderit assumenda voluptates quibusdam, voluptatum obcaecati dolore ad porro inventore deleniti magnam distinctio fugiat a pariatur minus?</p>
+      <h2>What?</h2>
+      <p>This page is an attempt to dynamically generating a color scheme for a web page.</p>
+      <h2>How?</h2>
+      <p>To generate a new color scheme press the button with the content "Generate!", the button can be found in the
+        top right of the page. If you press the square to the left of the generate button you can select an input color.
+      </p>
+      <h2>How does this it work?</h2>
+      <p>The color scheme is generated using an input color upon the other colors are created from. The colors are
+        chosen
+        based upon the contrast ration between the colors.</p>
+      <h2>The colors.</h2>
+      <div class="code">
+        <p>--primary:
+          <ColorSquare :color="theme.primary.rgb" />{{theme.primary.hex}};
+        </p>
+        <p>--primary-1:
+          <ColorSquare :color="theme.primary.variants[0].rgb" />{{theme.primary.variants[0].hex}};
+        </p>
+        <p>--primary-2:
+          <ColorSquare :color="theme.primary.variants[1].rgb" />{{theme.primary.variants[1].hex}};
+        </p>
+        <p>--primary-3:
+          <ColorSquare :color="theme.primary.variants[2].rgb" />{{theme.primary.variants[2].hex}};
+        </p>
+        <p>--secondary:
+          <ColorSquare :color="theme.secondary.rgb" />{{theme.secondary.hex}}
+        </p>
+        <p>--secondary-1:
+          <ColorSquare :color="theme.secondary.variants[0].rgb" />{{theme.secondary.variants[0].hex}};
+        </p>
+        <p>--secondary-2:
+          <ColorSquare :color="theme.secondary.variants[1].rgb" />{{theme.secondary.variants[1].hex}};
+        </p>
+        <p>--secondary-3:
+          <ColorSquare :color="theme.secondary.variants[2].rgb" />{{theme.secondary.variants[2].hex}};
+        </p>
+        <p>--foreground:
+          <ColorSquare :color="theme.foreground.rgb" />{{theme.foreground.hex}};
+        </p>
+        <p>--foreground-1:
+          <ColorSquare :color="theme.foreground.variants[0].rgb" />{{theme.foreground.variants[0].hex}};
+        </p>
+        <p>--foreground-2:
+          <ColorSquare :color="theme.foreground.variants[1].rgb" />{{theme.foreground.variants[1].hex}};
+        </p>
+        <p>--foreground-3:
+          <ColorSquare :color="theme.foreground.variants[2].rgb" />{{theme.foreground.variants[2].hex}};
+        </p>
+        <p>--background:
+          <ColorSquare :color="theme.background.rgb" />{{theme.background.hex}};
+        </p>
+        <p>--background-1:
+          <ColorSquare :color="theme.background.variants[0].rgb" />{{theme.background.variants[0].hex}};
+        </p>
+        <p>--background-2:
+          <ColorSquare :color="theme.background.variants[1].rgb" />{{theme.background.variants[1].hex}};
+        </p>
+        <p>--background-3:
+          <ColorSquare :color="theme.background.variants[2].rgb" />{{theme.background.variants[2].hex}};
+        </p>
+      </div>
     </main>
+    <footer>
+      <p>Unsmart Colors App</p>
+      <p>
+        <a href="https://ochuko.me">Jonne Oke</a>
+        2022
+      </p>
+    </footer>
   </div>
 </template>
 
@@ -52,8 +123,11 @@ const theme = ref(new Theme(colors[Math.floor(Math.random() * 800)][0]))
   height: 100%;
   width: 100%;
 
-  background: var(--background);
+  background-color: var(--background);
+  background-image: linear-gradient(var(--background-3), var(--background-2), var(--background-1), var(--background));
   color: var(--foreground);
+
+  overflow: auto;
 
   main {
     max-width: 66ch;
@@ -63,24 +137,41 @@ const theme = ref(new Theme(colors[Math.floor(Math.random() * 800)][0]))
 
     padding: 1em;
 
-    > p {
+    >p {
       text-align: left;
       margin: 1em;
     }
   }
 }
 
+.code {
+  background-color: var(--foreground-3);
+  background-image: linear-gradient(-45deg, var(--foreground), var(--foreground-1), var(--foreground-2), var(--foreground-3));
+  color: var(--primary);
+  filter: drop-shadow(0 0 5px var(--foreground-3));
+  // color: var(--primary);
+  margin: 2em;
+  padding: 1em;
+  border-radius: 5px;
+  text-align: left;
+}
 
-.page-container {
-  height: 100%;
-  width: 100%;
+footer {
+  position: sticky;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  padding: 1em;
+  display: flex;
+  justify-content: space-between;
 
-  background: var(--background);
+  background-color: var(--primary);
   color: var(--foreground);
+  font-weight: bold;
+  font-size: large;
+}
 
-  &.center-content {
-    display: grid;
-    place-items: center;
-  }
+a {
+  color: inherit;
 }
 </style>

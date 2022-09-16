@@ -24,17 +24,14 @@ export default class Theme {
 
     constructor(primary: RGBColor) {
         this.primary = Theme.initColorWithVariants(primary);
-        
+        this.secondary = Theme.initColorWithVariants(HSLToRGB(rotateHue(this.primary.hsl, 60)))
         this.foreground = Theme.generateContrastingColor(this.primary)
-        this.secondary = Theme.generateContrastingColor(this.foreground)
-
         this.background = Theme.generateContrastingColor(this.foreground, 7)
         this.info = Theme.info;
         this.warning = Theme.warning;
         this.danger = Theme.danger;
         this.success = Theme.success;
     }
-
 
     // !!! Below only static !!!
 
