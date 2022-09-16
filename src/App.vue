@@ -4,8 +4,6 @@
 import { ref } from "vue";
 import { colors } from "./lib/colors";
 import Theme from "./lib/theme";
-
-import ThemePreview from "./components/ThemePreview.vue";
 import Navbar from "./components/Navbar.vue";
 import ColorSquare from "./components/ColorSquare.vue";
 import { hexToRGB } from "./lib/color";
@@ -29,15 +27,14 @@ const theme = ref(new Theme(startColor));
     <Navbar :theme="theme" :set-theme="setTheme" />
     <main>
       <h2>What?</h2>
-      <p>This page is an attempt to dynamically generating a color scheme for a web page.</p>
+      <p>This page is an attempt at dynamically generating a color scheme for a web page.</p>
       <h2>How?</h2>
       <p>To generate a new color scheme press the button with the content "Generate!", the button can be found in the
         top right of the page. If you press the square to the left of the generate button you can select an input color.
       </p>
       <h2>How does this it work?</h2>
-      <p>The color scheme is generated using an input color upon the other colors are created from. The colors are
-        chosen
-        based upon the contrast ration between the colors.</p>
+      <p>The color scheme is generated using an input color. Upon the input color other colors are created. The colors are
+        chosen based upon the contrast ratio between the colors.</p>
       <h2>The colors.</h2>
       <div class="code">
         <p>--primary:
