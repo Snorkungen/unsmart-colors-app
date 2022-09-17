@@ -2,11 +2,18 @@
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
 import { ref } from "vue";
-import { colors } from "./lib/colors";
+import { ColorEntries, colors } from "./lib/colors";
 import Theme from "./lib/theme";
 import Navbar from "./components/Navbar.vue";
 import ColorSquare from "./components/ColorSquare.vue";
 import { hexToRGB } from "./lib/color";
+
+fetch("./colors.sorted.json")
+  .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
+  .then(entries => colors.push(...entries))
+  .finally(() => {
+    setTheme(new Theme(theme.value.primary.rgb))
+  })
 
 const setTheme = (value: Theme) => {
   window.location.hash = value.primary.hex
@@ -23,9 +30,9 @@ const theme = ref(new Theme(startColor));
 </script>
 
 <template>
-  <div id="page-wrapper">
+  <div id="page-wrapper" >
     <Navbar :theme="theme" :set-theme="setTheme" />
-    <main>
+    <main >
       <h2>What?</h2>
       <p>This page is an attempt at dynamically generating a color scheme for a web page.</p>
       <h2>How?</h2>
