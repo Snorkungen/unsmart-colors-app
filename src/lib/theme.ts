@@ -24,9 +24,9 @@ export default class Theme {
 
     constructor(primary: RGBColor) {
         this.primary = Theme.initColorWithVariants(primary);
-        this.secondary = Theme.initColorWithVariants(HSLToRGB(rotateHue(this.primary.hsl, 60)))
-        this.foreground = Theme.generateContrastingColor(this.primary)
-        this.background = Theme.generateContrastingColor(this.foreground, 7)
+        this.secondary = Theme.initColorWithVariants(HSLToRGB(rotateHue(this.primary.hsl, 60 * 3)))
+        this.foreground = Theme.generateContrastingColor(this.primary, 4.6)
+        this.background = Theme.generateContrastingColor(this.foreground, 7.1)
         this.info = Theme.info;
         this.warning = Theme.warning;
         this.danger = Theme.danger;
@@ -50,12 +50,12 @@ export default class Theme {
         }
     }
 
-    static initColorWithVariants(rgb: RGBColor, count = 6): ColorWithVariants {
+    static initColorWithVariants(rgb: RGBColor, count = 4): ColorWithVariants {
         let color = this.initColor(rgb);
 
         // generate variants
         let [hue, saturation, lightness] = color.hsl;
-        let lightnessModifier = lightness / (count + 1);
+        let lightnessModifier = lightness / (count);
 
         if (lightness > 0.5) {
             lightnessModifier * -1;
@@ -131,21 +131,17 @@ export default class Theme {
         let colorEntries = colors.reduce<ColorEntries>((found, entry) => {
             let [, , luminance] = entry;
             if (
-                (newColorIsDarker && luminance < targetLuminance) ||
-                (!newColorIsDarker && luminance > targetLuminance)
+                (newColorIsDarker && luminance < targetLuminance && luminance > targetLuminance - 0.05) ||
+                (!newColorIsDarker && luminance > targetLuminance && luminance < targetLuminance + 0.05)
             ) return [...found, entry];
             return found;
-        }, []).sort();
-
-        let colorEntry = colors.find(([, , luminance]) => (
-            (newColorIsDarker && luminance < targetLuminance) ||
-            (!newColorIsDarker && luminance > targetLuminance)
-        ));
+        }, []);
 
         if (colorEntries.length) {
-            return this.initColorWithVariants(newColorIsDarker ? colorEntries[colorEntries.length - 1][0] : colorEntries[0][0])
+            let entry = newColorIsDarker ? colorEntries[colorEntries.length - 1] : colorEntries[0]
+            return this.initColorWithVariants(entry[0]);
         }
-        console.log("jshjdk")
+
         return this.initColorWithVariants(targetLuminance < 0.5 ? this.BLACK_RGB : this.WHITE_RGB);
     }
 

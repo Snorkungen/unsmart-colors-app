@@ -1,40 +1,24 @@
 :root {
-    --color3: #ecfc95;
-    /*#4ed3aa */
-    ;
-    --color1: #787e17;
-    /* #fefef3*/
-    ;
-    --color2: #1d187e;
-    /*#270f69*/
-    ;
-    --color4: #f43444;
+    --primary: #003830;
+    --primary-1: #00463c;
+    --primary-2: #005448;
+    --primary-3: #006254;
 
-    --primary: #93ffe9;
-    --primary-1: #abffff;
-    --primary-2: #c4ffff;
-    --primary-3: #dcffff;
-    --primary-4: #f4ffff;
+    --secondary: #380009;
+    --secondary-1: #46000c;
+    --secondary-2: #54000f;
+    --secondary-3: #620011;
 
-    --secondary: #ea93ff;
-    --secondary-1: #ffacff;
-    --secondary-2: #ffc4ff;
-    --secondary-3: #ffddff;
-    --secondary-4: #fff5ff;
+    --foreground: #91a3b0;
+    --foreground-1: #c0cbd2;
+    --foreground-2: #eff2f4;
+    --foreground-3: #ffffff;
 
-    --foreground: #20014c;
-    --foreground-1: #250159;
-    --foreground-2: #2b0165;
-    --foreground-3: #300172;
-    --foreground-4: #35027e;
+    --background: #100c08;
+    --background-1: #140f0a;
+    --background-2: #18120c;
+    --background-3: #1c150e;
 
-    --background: #dec6ac;
-    --background-1: #ffe7c8;
-    --background-2: #ffffe5;
-    --background-3: #ffffff;
-    --background-4: #ffffff;
-
-    --text: #ffffff;
     --warning: #ffc107;
     --danger: #dc3545;
     --success: #28a745;

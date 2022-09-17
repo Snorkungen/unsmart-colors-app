@@ -33,8 +33,8 @@ const theme = ref(new Theme(startColor));
         top right of the page. If you press the square to the left of the generate button you can select an input color.
       </p>
       <h2>How does this it work?</h2>
-      <p>The color scheme is generated using an input color. Upon the input color other colors are created. The colors are
-        chosen based upon the contrast ratio between the colors.</p>
+      <p>The color scheme is generated using an input color. Upon the input color other colors are created. The colors
+        are chosen based upon the contrast ratio between the colors.</p>
       <h2>The colors.</h2>
       <div class="code">
         <p>--primary:
@@ -50,7 +50,7 @@ const theme = ref(new Theme(startColor));
           <ColorSquare :color="theme.primary.variants[2].rgb" />{{theme.primary.variants[2].hex}};
         </p>
         <p>--secondary:
-          <ColorSquare :color="theme.secondary.rgb" />{{theme.secondary.hex}}
+          <ColorSquare :color="theme.secondary.rgb" />{{theme.secondary.hex}};
         </p>
         <p>--secondary-1:
           <ColorSquare :color="theme.secondary.variants[0].rgb" />{{theme.secondary.variants[0].hex}};
@@ -83,12 +83,12 @@ const theme = ref(new Theme(startColor));
           <ColorSquare :color="theme.background.variants[1].rgb" />{{theme.background.variants[1].hex}};
         </p>
         <p>--background-3:
-          <ColorSquare :color="theme.background.variants[2].rgb" />{{theme.background.variants[2].hex}};
+          <ColorSquare :color="theme.background.variants[2].rgb" /> {{theme.background.variants[2].hex}};
         </p>
       </div>
     </main>
     <footer>
-      <p>Unsmart Colors App</p>
+      <p>UnSmart Colors App</p>
       <p>
         <a href="https://ochuko.me">Jonne Oke</a>
         2022
@@ -121,12 +121,15 @@ const theme = ref(new Theme(startColor));
   width: 100%;
 
   background-color: var(--background);
-  background-image: linear-gradient(var(--background-3), var(--background-2), var(--background-1), var(--background));
+  background-image: linear-gradient(var(--background) 40%, var(--background-1), var(--background-2), var(--background-3));
   color: var(--foreground);
 
   overflow: auto;
+  display: flex;
+  flex-direction: column;
 
   main {
+    flex-grow: 2;
     max-width: 66ch;
     display: block;
     margin: 0 auto;
@@ -142,15 +145,19 @@ const theme = ref(new Theme(startColor));
 }
 
 .code {
-  background-color: var(--foreground-3);
-  background-image: linear-gradient(-45deg, var(--foreground), var(--foreground-1), var(--foreground-2), var(--foreground-3));
+  background-color: var(--foreground);
   color: var(--primary);
   filter: drop-shadow(0 0 5px var(--foreground-3));
-  // color: var(--primary);
+  font-weight: 500;
+  font-size: 1.1em;
   margin: 2em;
   padding: 1em;
-  border-radius: 5px;
+  border-radius: 3px;
   text-align: left;
+
+  .square {
+    border: solid 1px var(--primary-1);
+  }
 }
 
 footer {

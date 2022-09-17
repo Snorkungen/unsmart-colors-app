@@ -15,7 +15,7 @@ const click = (c: any) => {
 </script>
 
 <template>
-    <div class="square" @click="() => click(color)"></div>
+    <span class="square" @click="() => click(color)"></span>
 </template>
 
 <style lang="scss" scoped>
