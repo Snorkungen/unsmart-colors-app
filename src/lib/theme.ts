@@ -1,5 +1,5 @@
 import { RGBColor, RGBToLuminance, RGBToHex, createColorVariant, RGBToHSL, HSLToRGB, rotateHue, hexToRGB, HSLColor, createRandomColor } from "./color";
-import { ColorEntries, colors } from "./colors";
+import { ColorEntries, ColorEntry, colors } from "./colors";
 
 interface Color {
     rgb: RGBColor;
@@ -24,9 +24,9 @@ export default class Theme {
 
     constructor(primary: RGBColor) {
         this.primary = Theme.initColorWithVariants(primary);
-        this.secondary = Theme.initColorWithVariants(HSLToRGB(rotateHue(this.primary.hsl, 60 * 3)))
-        this.foreground = Theme.generateContrastingColor(this.primary, 4.6)
-        this.background = Theme.generateContrastingColor(this.foreground, 7.1)
+        this.secondary = Theme.initSecondaryColor(this.primary);
+        this.foreground = Theme.generateContrastingColor(this.primary, 4.5)
+        this.background = Theme.generateContrastingColor(this.foreground, 7)
         this.info = Theme.info;
         this.warning = Theme.warning;
         this.danger = Theme.danger;
@@ -55,7 +55,7 @@ export default class Theme {
 
         // generate variants
         let [hue, saturation, lightness] = color.hsl;
-        let lightnessModifier = lightness / (count);
+        let lightnessModifier = 0.05 // lightness / (count);
 
         if (lightness > 0.5) {
             lightnessModifier * -1;
@@ -96,10 +96,11 @@ export default class Theme {
     );
 
     static CONTRAST_RATIO_NUM = 0.05;
-    static MAX_LUMINANCE = RGBToLuminance([255, 255, 255]) + 0.01;
+    static MAX_LUMINANCE = RGBToLuminance([255, 255, 255]);
     static MIN_LUMINANCE = 0;
     static BLACK_RGB: RGBColor = [0, 0, 0, 1];
     static WHITE_RGB: RGBColor = [255, 255, 255, 1];
+    static LUMINANCE_DISTANCE = 0.0069;
 
     static contrastRatio(...colors: [Color, Color]) {
         // https://www.w3.org/WAI/GL/wiki/Contrast_ratio
@@ -119,30 +120,57 @@ export default class Theme {
     }
 
     static generateContrastingColor(color: Color, ratio = 4.5): ColorWithVariants {
-        let targetLuminance = this.derriveLuminance(ratio, color.luminance);
+        /* 
+            Issue Derrive Luminance is innaccurate because decimals are great
+            To do: fix Theme.derriveLuminance
+        */
+        let targetLuminance = this.derriveLuminance(ratio + 0.3, color.luminance);
+
+        /* 
+            The Function above returns incorrect values because JS auto rounds decimals
+        */
 
         if (targetLuminance < this.MIN_LUMINANCE) {
-            return this.initColorWithVariants(this.BLACK_RGB)
+            return this.initColorWithVariants(this.WHITE_RGB)
         } else if (targetLuminance > this.MAX_LUMINANCE) {
-            return this.initColorWithVariants(this.WHITE_RGB);
+            return this.initColorWithVariants(this.BLACK_RGB);
         }
         let newColorIsDarker = color.luminance > targetLuminance;
 
-        let colorEntries = colors.reduce<ColorEntries>((found, entry) => {
+        let colorEntries: ColorEntries = colors.reduce<ColorEntries>((found, entry) => {
             let [, , luminance] = entry;
             if (
-                (newColorIsDarker && luminance < targetLuminance && luminance > targetLuminance - 0.05) ||
-                (!newColorIsDarker && luminance > targetLuminance && luminance < targetLuminance + 0.05)
+                (newColorIsDarker && luminance < targetLuminance && luminance > targetLuminance - this.LUMINANCE_DISTANCE) ||
+                (!newColorIsDarker && luminance > targetLuminance && luminance < targetLuminance + this.LUMINANCE_DISTANCE)
             ) return [...found, entry];
             return found;
         }, []);
 
         if (colorEntries.length) {
-            let entry = newColorIsDarker ? colorEntries[colorEntries.length - 1] : colorEntries[0]
-            return this.initColorWithVariants(entry[0]);
+            let entry = !newColorIsDarker ? colorEntries[colorEntries.length - 1] : colorEntries[0]
+            return this.initColorWithVariants(entry[0])
         }
 
-        return this.initColorWithVariants(targetLuminance < 0.5 ? this.BLACK_RGB : this.WHITE_RGB);
+        console.log("No color found!", targetLuminance)
+        return this.initColorWithVariants(newColorIsDarker ? this.BLACK_RGB : this.WHITE_RGB);
+    }
+
+    static initSecondaryColor(color: Color) {
+        let sumRGB = (rgb: RGBColor) => rgb.slice(0, 2).reduce<number>((sum, val) => sum + (val || 0), 0);
+        let diff = (n1: number, n2: number) => Math.max(n1, n2) - Math.min(n1, n2)
+        let colorRGBSum = sumRGB(color.rgb);
+
+        let colorEntries = colors.reduce<ColorEntries>((entries, entry) => (numsAreClose(entry[2], color.luminance, this.LUMINANCE_DISTANCE) ? [...entries, entry] : entries), [])
+        let colorEntry = colorEntries.reduce((bestEntry, entry) => {
+            let bestSum = sumRGB(bestEntry[0]), entryRGBSum = sumRGB(entry[0])
+
+            if (diff(colorRGBSum, bestSum) < diff(colorRGBSum, entryRGBSum)) return entry;
+
+            return bestEntry
+        }, colorEntries[0]);
+
+
+        return this.initColorWithVariants(colorEntry[0])
     }
 
 }
@@ -151,3 +179,16 @@ export default class Theme {
 export {
     Theme
 };
+
+export function numsAreClose(
+    n1: number,
+    n2: number,
+    distance = 0.05,
+    lowerDistance: number | undefined = distance,
+    upperDistance: number | undefined = distance
+) {
+    return (
+        n1 > n2 - (lowerDistance ?? distance) &&
+        n1 < n2 + (upperDistance ?? distance)
+    )
+}

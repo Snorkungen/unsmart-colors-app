@@ -30,16 +30,16 @@ const theme = ref(new Theme(startColor));
 </script>
 
 <template>
-  <div id="page-wrapper" >
+  <div id="page-wrapper">
     <Navbar :theme="theme" :set-theme="setTheme" />
-    <main >
+    <main>
       <h2>What?</h2>
       <p>This page is an attempt at dynamically generating a color scheme for a web page.</p>
       <h2>How?</h2>
       <p>To generate a new color scheme press the button with the content "Generate!", the button can be found in the
         top right of the page. If you press the square to the left of the generate button you can select an input color.
       </p>
-      <h2>How does this it work?</h2>
+      <h2>How does this work?</h2>
       <p>The color scheme is generated using an input color. Upon the input color other colors are created. The colors
         are chosen based upon the contrast ratio between the colors.</p>
       <h2>The colors.</h2>
@@ -154,8 +154,8 @@ const theme = ref(new Theme(startColor));
 .code {
   background-color: var(--foreground);
   color: var(--primary);
-  filter: drop-shadow(0 0 5px var(--foreground-3));
-  font-weight: 500;
+  filter: drop-shadow(0 0 15px var(--background-3));
+  font-weight: 600;
   font-size: 1.1em;
   margin: 2em;
   padding: 1em;
@@ -163,7 +163,7 @@ const theme = ref(new Theme(startColor));
   text-align: left;
 
   .square {
-    border: solid 1px var(--primary-1);
+    border: solid 2px var(--primary-1);
   }
 }
 

@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { hexToRGB } from '../lib/color';
 import { colors } from '../lib/colors';
 import Theme from '../lib/theme';
 import Button from './Button.vue';
 
-const colorRef = ref<string>();
-
-let { setTheme, theme} = defineProps<{
+let { setTheme, theme } = defineProps<{
     setTheme: (theme: Theme) => void
     theme: Theme
 }>();
@@ -32,7 +29,7 @@ const handleColorInput: HTMLInputElement["oninput"] = (event) => {
         <h1>UnSmart Colors App</h1>
         <div>
             <input @input="handleColorInput" type="color" :value="theme.primary.hex" />
-            <Button @click="generate">Generate!</Button>
+            <Button @click="generate" variant="secondary">Generate!</Button>
         </div>
     </nav>
 </template>
