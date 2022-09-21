@@ -1,3 +1,4 @@
+import BigNumber from "bignumber.js";
 import { RGBColor, RGBToLuminance, RGBToHex, createColorVariant, RGBToHSL, HSLToRGB, rotateHue, hexToRGB, HSLColor, createRandomColor } from "./color";
 import { ColorEntries, ColorEntry, colors } from "./colors";
 
@@ -25,8 +26,8 @@ export default class Theme {
     constructor(primary: RGBColor) {
         this.primary = Theme.initColorWithVariants(primary);
         this.secondary = Theme.initSecondaryColor(this.primary);
-        this.foreground = Theme.generateContrastingColor(this.primary, 4.5)
-        this.background = Theme.generateContrastingColor(this.foreground, 7)
+        this.foreground = Theme.generateContrastingColor(this.primary, 5)
+        this.background = Theme.generateContrastingColor(this.foreground, 7.2)
         this.info = Theme.info;
         this.warning = Theme.warning;
         this.danger = Theme.danger;
@@ -111,30 +112,44 @@ export default class Theme {
     }
 
     static derriveLuminance(ratio: number, luminance: number) {
-        // ( x + 0.05 )/( 0 + 0.05 )= 21 || x ~~ 1
-        let dark_lum = ratio * (luminance + this.CONTRAST_RATIO_NUM) - this.CONTRAST_RATIO_NUM;
-        if (dark_lum < this.MAX_LUMINANCE) return dark_lum;
-        // ( 1 + 0.05 ) / ( x + 0.05) = 21 || x ~~ 0
-        let n = 1 / (luminance + this.CONTRAST_RATIO_NUM);
-        return 1 / (ratio - n * this.CONTRAST_RATIO_NUM) / n - this.CONTRAST_RATIO_NUM;
+        let derriveLuminanceUsingDark = (luminance: BigNumber, ratio: number) => {
+            // (x + 0.05) / (0 + 0.05) = 21 || x = 1
+            return BigNumber(ratio.toString())
+                .times(BigNumber(luminance.toString()).plus(this.CONTRAST_RATIO_NUM))
+                .minus(this.CONTRAST_RATIO_NUM)
+        }
+
+        let derriveLuminanceUsingLight = (luminance: BigNumber, ratio: number) => {
+            // (1 + 0.05) / (x + 0.05) = 21 || x = 0
+            // https://www.geogebra.org/solver?i=(0.9%2B0.05)%2F(x%2B0.05)%3D4.5
+            let r = BigNumber("1").div(BigNumber(ratio.toString()));
+            let l = BigNumber("1").div(BigNumber(luminance).plus(this.CONTRAST_RATIO_NUM))
+            let ll = l.times(this.CONTRAST_RATIO_NUM)
+            return r.minus(ll).div(l)
+        }
+
+        let bn = BigNumber(luminance.toString())
+        let resultLuminance = derriveLuminanceUsingDark(bn, ratio).toNumber();
+
+        if (resultLuminance <= 1) return resultLuminance;
+
+        resultLuminance = derriveLuminanceUsingLight(bn, ratio).toNumber();
+
+        if (resultLuminance >= 0) return resultLuminance;
+
+        console.warn("Luminance not found")
+        return -1;
     }
 
     static generateContrastingColor(color: Color, ratio = 4.5): ColorWithVariants {
-        /* 
-            Issue Derrive Luminance is innaccurate because decimals are great
-            To do: fix Theme.derriveLuminance
-        */
-        let targetLuminance = this.derriveLuminance(ratio + 0.3, color.luminance);
+        let targetLuminance = this.derriveLuminance(ratio, color.luminance);
 
-        /* 
-            The Function above returns incorrect values because JS auto rounds decimals
-        */
-
-        if (targetLuminance < this.MIN_LUMINANCE) {
-            return this.initColorWithVariants(this.WHITE_RGB)
-        } else if (targetLuminance > this.MAX_LUMINANCE) {
-            return this.initColorWithVariants(this.BLACK_RGB);
+        if (targetLuminance < 0) {
+            return this.initColorWithVariants(
+                color.luminance > 0.5 ? this.BLACK_RGB : this.WHITE_RGB
+            )
         }
+        
         let newColorIsDarker = color.luminance > targetLuminance;
 
         let colorEntries: ColorEntries = colors.reduce<ColorEntries>((found, entry) => {
@@ -151,7 +166,7 @@ export default class Theme {
             return this.initColorWithVariants(entry[0])
         }
 
-        console.log("No color found!", targetLuminance)
+        // console.log("No color found!", targetLuminance)
         return this.initColorWithVariants(newColorIsDarker ? this.BLACK_RGB : this.WHITE_RGB);
     }
 
