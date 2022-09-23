@@ -8,12 +8,12 @@ import Navbar from "./components/Navbar.vue";
 import ColorSquare from "./components/ColorSquare.vue";
 import { hexToRGB } from "./lib/color";
 
-fetch("./colors.sorted.json")
-  .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
-  .then(entries => colors.push(...entries))
-  .finally(() => {
-    setTheme(new Theme(theme.value.primary.rgb))
-  })
+// fetch("./colors.sorted.json")
+//   .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
+//   .then(entries => colors.push(...entries))
+//   .finally(() => {
+//     setTheme(new Theme(theme.value.primary.rgb))
+//   })
 
 const setTheme = (value: Theme) => {
   window.location.hash = value.primary.hex
@@ -93,6 +93,17 @@ const theme = ref(new Theme(startColor));
           <ColorSquare :color="theme.background.variants[2].rgb" /> {{theme.background.variants[2].hex}};
         </p>
       </div>
+<!-- 
+      <pre class="code">
+        {{JSON.stringify(Theme.convertThemeIntoAMoreReadableObject(theme),null,1)}}
+      </pre> -->
+
+      <div class="messages">
+        <div class="message danger">Danger Message</div>
+        <div class="message success">Success Message</div>
+        <div class="message warning">Warning Message</div>
+        <div class="message info">Info Message</div>
+      </div>
     </main>
     <footer>
       <p>UnSmart Colors App</p>
@@ -123,6 +134,10 @@ const theme = ref(new Theme(startColor));
   --background-2: v-bind(theme.background.variants[1].hex);
   --background-3: v-bind(theme.background.variants[2].hex);
 
+  --danger: v-bind(theme.danger.hex);
+  --success: v-bind(theme.success.hex);
+  --warning: v-bind(theme.warning.hex);
+  --info: v-bind(theme.info.hex);
 
   height: 100%;
   width: 100%;
@@ -184,5 +199,30 @@ footer {
 
 a {
   color: inherit;
+}
+
+.message {
+  display: block;
+  width: 100%;
+
+  margin: 0 0 1em;
+  padding: 6px;
+
+  background-color: var(--foreground);
+  color: var(--background);
+
+  $message-variants: ("danger",
+    "success",
+    "warning",
+    "info"
+  );
+
+  @each $variant,
+  $_ in $message-variants {
+    &.#{$variant} {
+      background-color: var(--#{$variant});
+      color: var(--foreground);
+    }
+  }
 }
 </style>

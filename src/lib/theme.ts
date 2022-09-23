@@ -32,9 +32,32 @@ export default class Theme {
         this.warning = Theme.warning;
         this.danger = Theme.danger;
         this.success = Theme.success;
+
+        // http://www.workwithcolor.com/red-color-hue-range-01.htm		
+
+        /* get all red'ish colors */
+        /* UnSmart logic for getting red colors red is more than 72% of total */
+        let redColors = Theme.selectColorsUsingHue(340,9).map(([,hex]) => hex);
+        console.log("red:", redColors)
+
+        /* get all yellow'ish colors */
+
+	let yellowColors = Theme.selectColorsUsingHue(14,58).map(([,hex]) => hex);
+        console.log("yellow:", yellowColors)
     }
 
     // !!! Below only static !!!
+
+    static selectColorsUsingHue (start: number,end: number): ColorEntries {
+    	start /= 360; end /= 360;	
+	return colors.filter(([rgb]) => {
+		let [hue] = RGBToHSL(rgb);
+		return start < end ?
+			hue > start && hue < end :
+			(hue > start && hue < 1) ||
+			(hue > 0 && hue < end)			
+	});
+    }
 
     static initColor(rgb: RGBColor): Color {
         return {
@@ -149,7 +172,7 @@ export default class Theme {
                 color.luminance > 0.5 ? this.BLACK_RGB : this.WHITE_RGB
             )
         }
-        
+
         let newColorIsDarker = color.luminance > targetLuminance;
 
         let colorEntries: ColorEntries = colors.reduce<ColorEntries>((found, entry) => {
@@ -171,7 +194,6 @@ export default class Theme {
     }
 
     static initSecondaryColor(color: Color) {
-        let sumRGB = (rgb: RGBColor) => rgb.slice(0, 2).reduce<number>((sum, val) => sum + (val || 0), 0);
         let diff = (n1: number, n2: number) => Math.max(n1, n2) - Math.min(n1, n2)
         let colorRGBSum = sumRGB(color.rgb);
 
@@ -188,6 +210,31 @@ export default class Theme {
         return this.initColorWithVariants(colorEntry[0])
     }
 
+
+
+
+    static convertThemeIntoAMoreReadableObject(theme: Theme) {
+        let colors: Record<string, any> = {};
+        for (let color of ["primary", "secondary", "foreground", "background"]) {
+            let { hex, variants } = theme[color as "primary"];
+            colors[color] = {
+                "1": hex
+            };
+            variants.forEach(({ hex }, i) => {
+                colors[color] = {
+                    ...colors[color],
+                    [i + 2]: hex
+                }
+            })
+        }
+
+        colors["danger"] = theme.danger.hex
+        colors["success"] = theme.success.hex
+        colors["warning"] = theme.warning.hex
+        colors["info"] = theme.info.hex
+
+        return colors;
+    }
 }
 
 
@@ -206,4 +253,8 @@ export function numsAreClose(
         n1 > n2 - (lowerDistance ?? distance) &&
         n1 < n2 + (upperDistance ?? distance)
     )
+}
+
+export function sumRGB(rgb: RGBColor): number {
+    return rgb.slice(0, 3).reduce<number>((sum, val) => sum + (val || 0), 0)
 }
