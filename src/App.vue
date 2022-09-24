@@ -27,6 +27,11 @@ if (location.hash) {
 
 const theme = ref(new Theme(startColor));
 
+const dangerHexValues = ref(Theme.selectColorsUsingHue(340,10).map(([,hex]) => hex));
+const warningHexValues = ref(Theme.selectColorsUsingHue(24,58).map(([,hex]) => hex));
+const successHexValues = ref(Theme.selectColorsUsingHue(81,140).map(([,hex]) => hex));
+const infoHexValues = ref(Theme.selectColorsUsingHue(175,200).map(([,hex]) => hex));
+
 </script>
 
 <template>
@@ -104,6 +109,15 @@ const theme = ref(new Theme(startColor));
         <div class="message warning">Warning Message</div>
         <div class="message info">Info Message</div>
       </div>
+
+      <div v-for="hex in dangerHexValues" v-bind:style="{'background-color': hex}">{{hex}}</div>
+      <div class="message" >Divider</div>
+      <div v-for="hex in warningHexValues" v-bind:style="{'background-color': hex}">{{hex}}</div>
+      <div class="message" >Divider</div>
+      <div v-for="hex in successHexValues" v-bind:style="{'background-color': hex}">{{hex}}</div>
+      <div class="message" >Divider</div>
+      <div v-for="hex in infoHexValues" v-bind:style="{'background-color': hex}">{{hex}}</div>
+
     </main>
     <footer>
       <p>UnSmart Colors App</p>

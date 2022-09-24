@@ -35,23 +35,21 @@ export default class Theme {
 
         // http://www.workwithcolor.com/red-color-hue-range-01.htm		
 
-        /* get all red'ish colors */
-        /* UnSmart logic for getting red colors red is more than 72% of total */
-        let redColors = Theme.selectColorsUsingHue(340,9).map(([,hex]) => hex);
-        console.log("red:", redColors)
-
-        /* get all yellow'ish colors */
-
-	let yellowColors = Theme.selectColorsUsingHue(14,58).map(([,hex]) => hex);
-        console.log("yellow:", yellowColors)
     }
 
     // !!! Below only static !!!
 
     static selectColorsUsingHue (start: number,end: number): ColorEntries {
     	start /= 360; end /= 360;	
+	let maxSaturation = 1, minSaturation = 0.75;
+	let maxLightness = 0.7, minLightness = 0.2;
+
 	return colors.filter(([rgb]) => {
-		let [hue] = RGBToHSL(rgb);
+		let [hue,saturation,lightness] = RGBToHSL(rgb);
+
+		if(saturation > maxSaturation || saturation < minSaturation) return false;
+		if(lightness > maxLightness || lightness < minLightness) return false;
+
 		return start < end ?
 			hue > start && hue < end :
 			(hue > start && hue < 1) ||
