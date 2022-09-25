@@ -27,11 +27,6 @@ if (location.hash) {
 
 const theme = ref(new Theme(startColor));
 
-const dangerHexValues = ref(Theme.selectColorsUsingHue(340,10).map(([,hex]) => hex));
-const warningHexValues = ref(Theme.selectColorsUsingHue(24,58).map(([,hex]) => hex));
-const successHexValues = ref(Theme.selectColorsUsingHue(81,140).map(([,hex]) => hex));
-const infoHexValues = ref(Theme.selectColorsUsingHue(175,200).map(([,hex]) => hex));
-
 </script>
 
 <template>
@@ -98,7 +93,7 @@ const infoHexValues = ref(Theme.selectColorsUsingHue(175,200).map(([,hex]) => he
           <ColorSquare :color="theme.background.variants[2].rgb" /> {{theme.background.variants[2].hex}};
         </p>
       </div>
-<!-- 
+      <!-- 
       <pre class="code">
         {{JSON.stringify(Theme.convertThemeIntoAMoreReadableObject(theme),null,1)}}
       </pre> -->
@@ -109,14 +104,6 @@ const infoHexValues = ref(Theme.selectColorsUsingHue(175,200).map(([,hex]) => he
         <div class="message warning">Warning Message</div>
         <div class="message info">Info Message</div>
       </div>
-
-      <div v-for="hex in dangerHexValues" v-bind:style="{'background-color': hex}">{{hex}}</div>
-      <div class="message" >Divider</div>
-      <div v-for="hex in warningHexValues" v-bind:style="{'background-color': hex}">{{hex}}</div>
-      <div class="message" >Divider</div>
-      <div v-for="hex in successHexValues" v-bind:style="{'background-color': hex}">{{hex}}</div>
-      <div class="message" >Divider</div>
-      <div v-for="hex in infoHexValues" v-bind:style="{'background-color': hex}">{{hex}}</div>
 
     </main>
     <footer>
@@ -224,6 +211,8 @@ a {
 
   background-color: var(--foreground);
   color: var(--background);
+
+  font-weight: 600;
 
   $message-variants: ("danger",
     "success",

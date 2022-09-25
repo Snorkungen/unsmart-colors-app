@@ -28,34 +28,14 @@ export default class Theme {
         this.secondary = Theme.initSecondaryColor(this.primary);
         this.foreground = Theme.generateContrastingColor(this.primary, 5)
         this.background = Theme.generateContrastingColor(this.foreground, 7.2)
-        this.info = Theme.info;
-        this.warning = Theme.warning;
-        this.danger = Theme.danger;
-        this.success = Theme.success;
 
-        // http://www.workwithcolor.com/red-color-hue-range-01.htm		
-
+        this.info = Theme.initSupportColor(this.foreground, 175, 201);
+        this.success = Theme.initSupportColor(this.foreground, 80, 139);
+        this.danger = Theme.initSupportColor(this.foreground, 340, 10)
+        this.warning = Theme.initSupportColor(this.foreground, 24, 47);
     }
 
     // !!! Below only static !!!
-
-    static selectColorsUsingHue (start: number,end: number): ColorEntries {
-    	start /= 360; end /= 360;	
-	let maxSaturation = 1, minSaturation = 0.75;
-	let maxLightness = 0.7, minLightness = 0.2;
-
-	return colors.filter(([rgb]) => {
-		let [hue,saturation,lightness] = RGBToHSL(rgb);
-
-		if(saturation > maxSaturation || saturation < minSaturation) return false;
-		if(lightness > maxLightness || lightness < minLightness) return false;
-
-		return start < end ?
-			hue > start && hue < end :
-			(hue > start && hue < 1) ||
-			(hue > 0 && hue < end)			
-	});
-    }
 
     static initColor(rgb: RGBColor): Color {
         return {
@@ -208,7 +188,47 @@ export default class Theme {
         return this.initColorWithVariants(colorEntry[0])
     }
 
+    static initSupportColor(color: Color, rangeStart: number, rangeEnd: number): Color {
+        rangeStart /= 360
+        rangeEnd /= 360
 
+        let maxSaturation = 1, minSaturation = 0.4;
+        let maxLightness = 0.7, minLightness = 0.2;
+
+        let bestEntry: ColorEntry | undefined;
+
+        for (let entry of colors) {
+            let [hue, saturation, lightness] = RGBToHSL(entry[0]);
+
+            let saturationIsWithinParameters = saturation <= maxSaturation && saturation >= minSaturation;
+            let lightnessIsWithinParameters = lightness <= maxLightness && lightness >= minLightness;
+
+            let hueIsWithinParameters = rangeStart < rangeEnd ?
+                hue >= rangeStart && hue <= rangeEnd :
+                (hue > rangeStart && hue < 1) ||
+                (hue > 0 && hue < rangeEnd)
+
+            let isWithinParameters = hueIsWithinParameters && saturationIsWithinParameters && lightnessIsWithinParameters;
+
+            if (!isWithinParameters) continue;
+            if (!bestEntry) {
+                bestEntry = entry;
+                continue;
+            }
+
+            let bestEntryDiff = diff(bestEntry[2], color.luminance),
+                entryDiff = diff(entry[2], color.luminance);
+
+            if (entryDiff > bestEntryDiff) {
+                bestEntry = entry;
+            }
+        }
+
+        return this.initColor(
+            bestEntry ? bestEntry[0] : HSLToRGB([rangeEnd / 360, 0.5, 0.6])
+        )
+
+    }
 
 
     static convertThemeIntoAMoreReadableObject(theme: Theme) {
@@ -256,3 +276,5 @@ export function numsAreClose(
 export function sumRGB(rgb: RGBColor): number {
     return rgb.slice(0, 3).reduce<number>((sum, val) => sum + (val || 0), 0)
 }
+
+export function diff(n1: number, n2: number) { return Math.max(n1, n2) - Math.min(n1, n2) }
