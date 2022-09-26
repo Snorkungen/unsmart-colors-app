@@ -163,8 +163,17 @@ export default class Theme {
         }, []);
 
         if (colorEntries.length) {
-            let entry = !newColorIsDarker ? colorEntries[colorEntries.length - 1] : colorEntries[0]
-            return this.initColorWithVariants(entry[0])
+            let [colorHue] = RGBToHSL(color.rgb);
+            let entry = colorEntries.reduce((bestRGB, [rgb]) => {
+                let [bestHue] = RGBToHSL(bestRGB);
+                let [hue] = RGBToHSL(rgb);
+
+                if (diff(colorHue, hue) > diff(colorHue, bestHue)) return rgb;
+
+                return bestRGB;
+            }, !newColorIsDarker ? colorEntries[colorEntries.length - 1][0] : colorEntries[0][0]);
+
+            return this.initColorWithVariants(entry)
         }
 
         // console.log("No color found!", targetLuminance)
