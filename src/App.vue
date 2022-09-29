@@ -8,12 +8,12 @@ import Navbar from "./components/Navbar.vue";
 import ColorSquare from "./components/ColorSquare.vue";
 import { hexToRGB } from "./lib/color";
 
-// fetch("./colors.sorted.json")
-//   .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
-//   .then(entries => colors.push(...entries))
-//   .finally(() => {
-//     setTheme(new Theme(theme.value.primary.rgb))
-//   })
+fetch("./colors.sorted.json")
+  .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
+  .then(entries => colors.push(...entries))
+  .finally(() => {
+    setTheme(new Theme(theme.value.primary.rgb))
+  })
 
 const setTheme = (value: Theme) => {
   window.location.hash = value.primary.hex
@@ -92,7 +92,20 @@ const theme = ref(new Theme(startColor));
         <p>--background-3:
           <ColorSquare :color="theme.background.variants[2].rgb" /> {{theme.background.variants[2].hex}};
         </p>
+        <p>--success:
+          <ColorSquare :color="theme.success.rgb" />{{theme.success.hex}};
+        </p>
+        <p>--info:
+          <ColorSquare :color="theme.info.rgb" />{{theme.info.hex}};
+        </p>
+        <p>--danger:
+          <ColorSquare :color="theme.danger.rgb" />{{theme.danger.hex}};
+        </p>
+        <p>--warning:
+          <ColorSquare :color="theme.warning.rgb" />{{theme.warning.hex}};
+        </p>
       </div>
+
       <!-- 
       <pre class="code">
         {{JSON.stringify(Theme.convertThemeIntoAMoreReadableObject(theme),null,1)}}

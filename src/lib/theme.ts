@@ -143,6 +143,7 @@ export default class Theme {
     }
 
     static generateContrastingColor(color: Color, ratio = 4.5): ColorWithVariants {
+        let luminanceDistance = 0.2;
         let targetLuminance = this.derriveLuminance(ratio, color.luminance);
 
         if (targetLuminance < 0) {
@@ -156,8 +157,8 @@ export default class Theme {
         let colorEntries: ColorEntries = colors.reduce<ColorEntries>((found, entry) => {
             let [, , luminance] = entry;
             if (
-                (newColorIsDarker && luminance < targetLuminance && luminance > targetLuminance - this.LUMINANCE_DISTANCE) ||
-                (!newColorIsDarker && luminance > targetLuminance && luminance < targetLuminance + this.LUMINANCE_DISTANCE)
+                (newColorIsDarker && luminance < targetLuminance && luminance > targetLuminance - luminanceDistance) ||
+                (!newColorIsDarker && luminance > targetLuminance && luminance < targetLuminance + luminanceDistance)
             ) return [...found, entry];
             return found;
         }, []);
