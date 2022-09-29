@@ -2,14 +2,14 @@ import BigNumber from "bignumber.js";
 import { RGBColor, RGBToLuminance, RGBToHex, createColorVariant, RGBToHSL, HSLToRGB, rotateHue, hexToRGB, HSLColor, createRandomColor } from "./color";
 import { ColorEntries, ColorEntry, colors } from "./colors";
 
-interface Color {
+export interface Color {
     rgb: RGBColor;
     get hsl(): HSLColor;
     get hex(): string;
     get luminance(): number;
 }
 
-interface ColorWithVariants extends Color {
+export interface ColorWithVariants extends Color {
     variants: Array<Color>;
 }
 
@@ -104,9 +104,10 @@ export default class Theme {
     static WHITE_RGB: RGBColor = [255, 255, 255, 1];
     static LUMINANCE_DISTANCE = 0.0069;
 
-    static contrastRatio(...colors: [Color, Color]) {
+    static contrastRatio(...colors: Array<Color | number>) {
         // https://www.w3.org/WAI/GL/wiki/Contrast_ratio
-        let lums = colors.map(({ luminance }) => luminance);
+
+        let lums: Array<number> = colors.map((v) => typeof v == "number" ? v : v.luminance);
         let dark = Math.min(...lums),
             light = Math.max(...lums);
         return (light + this.CONTRAST_RATIO_NUM) / (dark + this.CONTRAST_RATIO_NUM);
@@ -143,7 +144,6 @@ export default class Theme {
     }
 
     static generateContrastingColor(color: Color, ratio = 4.5): ColorWithVariants {
-        let luminanceDistance = 0.2;
         let targetLuminance = this.derriveLuminance(ratio, color.luminance);
 
         if (targetLuminance < 0) {
@@ -152,33 +152,35 @@ export default class Theme {
             )
         }
 
-        let newColorIsDarker = color.luminance > targetLuminance;
+        let newColorIsDarker = color.luminance > 0.5
 
-        let colorEntries: ColorEntries = colors.reduce<ColorEntries>((found, entry) => {
-            let [, , luminance] = entry;
-            if (
-                (newColorIsDarker && luminance < targetLuminance && luminance > targetLuminance - luminanceDistance) ||
-                (!newColorIsDarker && luminance > targetLuminance && luminance < targetLuminance + luminanceDistance)
-            ) return [...found, entry];
-            return found;
-        }, []);
+        let bestColorOption: undefined | RGBColor;
+        const LUM_DIST = 0.2;
+        for (let entry of colors) {
+            let [rgb, , luminance] = entry;
 
-        if (colorEntries.length) {
-            let [colorHue] = RGBToHSL(color.rgb);
-            let entry = colorEntries.reduce((bestRGB, [rgb]) => {
-                let [bestHue] = RGBToHSL(bestRGB);
-                let [hue] = RGBToHSL(rgb);
+            // (newColorIsDarker ? luminance < targetLuminance : luminance > targetLuminance)
 
-                if (diff(colorHue, hue) > diff(colorHue, bestHue)) return rgb;
+            if (numsAreClose(targetLuminance, luminance, 0, newColorIsDarker ? LUM_DIST : undefined, !newColorIsDarker ? LUM_DIST : undefined)) {
+                if (!bestColorOption) {
+                    bestColorOption = rgb;
+                } else {
+                    let bestContrastRatio = this.contrastRatio(color, RGBToLuminance(rgb)),
+                        cr = this.contrastRatio(color, luminance);
 
-                return bestRGB;
-            }, !newColorIsDarker ? colorEntries[colorEntries.length - 1][0] : colorEntries[0][0]);
-
-            return this.initColorWithVariants(entry)
+                    if (cr > bestContrastRatio) bestColorOption = rgb;
+                }
+            }
         }
 
+        console.log(bestColorOption)
+
+        if (!bestColorOption) bestColorOption = color.luminance > 0.5 ? this.BLACK_RGB : this.WHITE_RGB;
+
+
+
         // console.log("No color found!", targetLuminance)
-        return this.initColorWithVariants(newColorIsDarker ? this.BLACK_RGB : this.WHITE_RGB);
+        return this.initColorWithVariants(bestColorOption);
     }
 
     static initSecondaryColor(color: Color) {

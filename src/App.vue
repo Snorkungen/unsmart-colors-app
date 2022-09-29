@@ -7,6 +7,7 @@ import Theme from "./lib/theme";
 import Navbar from "./components/Navbar.vue";
 import ColorSquare from "./components/ColorSquare.vue";
 import { hexToRGB } from "./lib/color";
+import CssVariableLine from "./components/CssVariableLine.vue";
 
 fetch("./colors.sorted.json")
   .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
@@ -44,80 +45,31 @@ const theme = ref(new Theme(startColor));
         are chosen based upon the contrast ratio between the colors.</p>
       <h2>The colors.</h2>
       <div class="code">
-        <p>--primary:
-          <ColorSquare :color="theme.primary.rgb" />{{theme.primary.hex}};
-        </p>
-        <p>--primary-1:
-          <ColorSquare :color="theme.primary.variants[0].rgb" />{{theme.primary.variants[0].hex}};
-        </p>
-        <p>--primary-2:
-          <ColorSquare :color="theme.primary.variants[1].rgb" />{{theme.primary.variants[1].hex}};
-        </p>
-        <p>--primary-3:
-          <ColorSquare :color="theme.primary.variants[2].rgb" />{{theme.primary.variants[2].hex}};
-        </p>
-        <p>--secondary:
-          <ColorSquare :color="theme.secondary.rgb" />{{theme.secondary.hex}};
-        </p>
-        <p>--secondary-1:
-          <ColorSquare :color="theme.secondary.variants[0].rgb" />{{theme.secondary.variants[0].hex}};
-        </p>
-        <p>--secondary-2:
-          <ColorSquare :color="theme.secondary.variants[1].rgb" />{{theme.secondary.variants[1].hex}};
-        </p>
-        <p>--secondary-3:
-          <ColorSquare :color="theme.secondary.variants[2].rgb" />{{theme.secondary.variants[2].hex}};
-        </p>
-        <p>--foreground:
-          <ColorSquare :color="theme.foreground.rgb" />{{theme.foreground.hex}};
-        </p>
-        <p>--foreground-1:
-          <ColorSquare :color="theme.foreground.variants[0].rgb" />{{theme.foreground.variants[0].hex}};
-        </p>
-        <p>--foreground-2:
-          <ColorSquare :color="theme.foreground.variants[1].rgb" />{{theme.foreground.variants[1].hex}};
-        </p>
-        <p>--foreground-3:
-          <ColorSquare :color="theme.foreground.variants[2].rgb" />{{theme.foreground.variants[2].hex}};
-        </p>
-        <p>--background:
-          <ColorSquare :color="theme.background.rgb" />{{theme.background.hex}};
-        </p>
-        <p>--background-1:
-          <ColorSquare :color="theme.background.variants[0].rgb" />{{theme.background.variants[0].hex}};
-        </p>
-        <p>--background-2:
-          <ColorSquare :color="theme.background.variants[1].rgb" />{{theme.background.variants[1].hex}};
-        </p>
-        <p>--background-3:
-          <ColorSquare :color="theme.background.variants[2].rgb" /> {{theme.background.variants[2].hex}};
-        </p>
-        <p>--success:
-          <ColorSquare :color="theme.success.rgb" />{{theme.success.hex}};
-        </p>
-        <p>--info:
-          <ColorSquare :color="theme.info.rgb" />{{theme.info.hex}};
-        </p>
-        <p>--danger:
-          <ColorSquare :color="theme.danger.rgb" />{{theme.danger.hex}};
-        </p>
-        <p>--warning:
-          <ColorSquare :color="theme.warning.rgb" />{{theme.warning.hex}};
-        </p>
+        <CssVariableLine :c="theme.primary" name="primary" />
+        <CssVariableLine :c="theme.primary.variants[0]" name="primary-1" />
+        <CssVariableLine :c="theme.primary.variants[1]" name="primary-2" />
+        <CssVariableLine :c="theme.primary.variants[2]" name="primary-3" />
+
+        <CssVariableLine :c="theme.secondary" name="secondary" />
+        <CssVariableLine :c="theme.secondary.variants[0]" name="secondary-1" />
+        <CssVariableLine :c="theme.secondary.variants[1]" name="secondary-2" />
+        <CssVariableLine :c="theme.secondary.variants[2]" name="secondary-3" />
+
+        <CssVariableLine :c="theme.foreground" name="foreground" />
+        <CssVariableLine :c="theme.foreground.variants[0]" name="foreground-1" />
+        <CssVariableLine :c="theme.foreground.variants[1]" name="foreground-2" />
+        <CssVariableLine :c="theme.foreground.variants[2]" name="foreground-3" />
+
+        <CssVariableLine :c="theme.background" name="background" />
+        <CssVariableLine :c="theme.background.variants[0]" name="background-1" />
+        <CssVariableLine :c="theme.background.variants[1]" name="background-2" />
+        <CssVariableLine :c="theme.background.variants[2]" name="background-3" />
+
+        <CssVariableLine :c="theme.info" name="info" />
+        <CssVariableLine :c="theme.success" name="success" />
+        <CssVariableLine :c="theme.danger" name="danger" />
+        <CssVariableLine :c="theme.warning" name="warning" />
       </div>
-
-      <!-- 
-      <pre class="code">
-        {{JSON.stringify(Theme.convertThemeIntoAMoreReadableObject(theme),null,1)}}
-      </pre> -->
-
-      <div class="messages">
-        <div class="message danger">Danger Message</div>
-        <div class="message success">Success Message</div>
-        <div class="message warning">Warning Message</div>
-        <div class="message info">Info Message</div>
-      </div>
-
     </main>
     <footer>
       <p>UnSmart Colors App</p>
@@ -157,7 +109,7 @@ const theme = ref(new Theme(startColor));
   width: 100%;
 
   background-color: var(--background);
-  background-image: linear-gradient(var(--background) 40%, var(--background-1), var(--background-2), var(--background-3));
+  // background-image: linear-gradient(var(--background) 40%, var(--background-1), var(--background-2), var(--background-3));
   color: var(--foreground);
 
   overflow: auto;
@@ -183,17 +135,13 @@ const theme = ref(new Theme(startColor));
 .code {
   background-color: var(--foreground);
   color: var(--primary);
-  filter: drop-shadow(0 0 15px var(--background-3));
+  filter: drop-shadow(0 0 15px var(--primary-3));
   font-weight: 600;
-  font-size: 1.1em;
+  font-size: 1.5em;
   margin: 2em;
   padding: 1em;
   border-radius: 3px;
   text-align: left;
-
-  .square {
-    border: solid 2px var(--primary-1);
-  }
 }
 
 footer {
