@@ -7,7 +7,7 @@ import Theme from "./lib/theme";
 import Navbar from "./components/Navbar.vue";
 import ColorSquare from "./components/ColorSquare.vue";
 import { hexToRGB } from "./lib/color";
-import CssVariableLine from "./components/CssVariableLine.vue";
+import PreJSON from "./components/PreJSON.vue";
 
 fetch("./colors.sorted.json")
   .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
@@ -36,40 +36,32 @@ const theme = ref(new Theme(startColor));
     <main>
       <h2>What?</h2>
       <p>This page is an attempt at dynamically generating a color scheme for a web page.</p>
+      
       <h2>How?</h2>
       <p>To generate a new color scheme press the button with the content "Generate!", the button can be found in the
         top right of the page. If you press the square to the left of the generate button you can select an input color.
       </p>
+      
       <h2>How does this work?</h2>
       <p>The color scheme is generated using an input color. Upon the input color other colors are created. The colors
         are chosen based upon the contrast ratio between the colors.</p>
       <h2>The colors.</h2>
+
       <div class="code">
-        <CssVariableLine :c="theme.primary" name="primary" />
-        <CssVariableLine :c="theme.primary.variants[0]" name="primary-1" />
-        <CssVariableLine :c="theme.primary.variants[1]" name="primary-2" />
-        <CssVariableLine :c="theme.primary.variants[2]" name="primary-3" />
-
-        <CssVariableLine :c="theme.secondary" name="secondary" />
-        <CssVariableLine :c="theme.secondary.variants[0]" name="secondary-1" />
-        <CssVariableLine :c="theme.secondary.variants[1]" name="secondary-2" />
-        <CssVariableLine :c="theme.secondary.variants[2]" name="secondary-3" />
-
-        <CssVariableLine :c="theme.foreground" name="foreground" />
-        <CssVariableLine :c="theme.foreground.variants[0]" name="foreground-1" />
-        <CssVariableLine :c="theme.foreground.variants[1]" name="foreground-2" />
-        <CssVariableLine :c="theme.foreground.variants[2]" name="foreground-3" />
-
-        <CssVariableLine :c="theme.background" name="background" />
-        <CssVariableLine :c="theme.background.variants[0]" name="background-1" />
-        <CssVariableLine :c="theme.background.variants[1]" name="background-2" />
-        <CssVariableLine :c="theme.background.variants[2]" name="background-3" />
-
-        <CssVariableLine :c="theme.info" name="info" />
-        <CssVariableLine :c="theme.success" name="success" />
-        <CssVariableLine :c="theme.danger" name="danger" />
-        <CssVariableLine :c="theme.warning" name="warning" />
+        <template v-for="(color, name) in Theme.stripThemeToHexValues(theme)">
+          <template v-if="typeof color == 'object'">
+            <pre v-for="(hex,key) in color">--{{ name }}-{{ key }}:<ColorSquare :color="hex" /> {{ hex }};</pre>
+          </template>
+          <template v-else>
+            <pre>--{{ name }}:<ColorSquare :color="color" /> {{ color }};</pre>
+          </template>
+        </template>
       </div>
+
+      <div class="code">
+        <PreJSON :json="JSON.stringify(Theme.stripThemeToHexValues(theme),null,4)" />
+      </div>
+
     </main>
     <footer>
       <p>UnSmart Colors App</p>
@@ -82,7 +74,7 @@ const theme = ref(new Theme(startColor));
 </template>
 
 <style scoped lang="scss">
-#page-wrapper {
+:root #page-wrapper {
   --primary: v-bind(theme.primary.hex);
   --primary-1: v-bind(theme.primary.variants[0].hex);
   --primary-2: v-bind(theme.primary.variants[1].hex);
@@ -104,12 +96,14 @@ const theme = ref(new Theme(startColor));
   --success: v-bind(theme.success.hex);
   --warning: v-bind(theme.warning.hex);
   --info: v-bind(theme.info.hex);
+}
 
+#page-wrapper {
   height: 100%;
   width: 100%;
 
   background-color: var(--background);
-  // background-image: linear-gradient(var(--background) 40%, var(--background-1), var(--background-2), var(--background-3));
+  // background-image: linear-gradient(-45deg,var(--background) 85%, var(--background-1), var(--background-2), var(--background-3));
   color: var(--foreground);
 
   overflow: auto;
@@ -119,6 +113,7 @@ const theme = ref(new Theme(startColor));
   main {
     flex-grow: 2;
     max-width: 66ch;
+    width: 100%;
     display: block;
     margin: 0 auto;
     text-align: center;
@@ -127,7 +122,7 @@ const theme = ref(new Theme(startColor));
 
     >p {
       text-align: left;
-      margin: 1em;
+      margin: 1em 0;
     }
   }
 }
@@ -135,13 +130,15 @@ const theme = ref(new Theme(startColor));
 .code {
   background-color: var(--foreground);
   color: var(--primary);
-  filter: drop-shadow(0 0 15px var(--primary-3));
+  filter: drop-shadow(0 0 15px var(--background-3));
   font-weight: 600;
   font-size: 1.5em;
-  margin: 2em;
+  margin: 1em auto;
   padding: 1em;
   border-radius: 3px;
   text-align: left;
+
+  width: 100%;
 }
 
 footer {

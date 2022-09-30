@@ -2,6 +2,19 @@ import BigNumber from "bignumber.js";
 import { RGBColor, RGBToLuminance, RGBToHex, createColorVariant, RGBToHSL, HSLToRGB, rotateHue, hexToRGB, HSLColor, createRandomColor } from "./color";
 import { ColorEntries, ColorEntry, colors } from "./colors";
 
+
+export interface HexOnlyTheme {
+    primary: { [n: number]: string; };
+    secondary: HexOnlyTheme["primary"];
+    foreground: HexOnlyTheme["primary"];
+    background: HexOnlyTheme["primary"];
+
+    info: string;
+    success: string;
+    danger: string;
+    warning: string;
+}
+
 export interface Color {
     rgb: RGBColor;
     get hsl(): HSLColor;
@@ -26,8 +39,8 @@ export default class Theme {
     constructor(primary: RGBColor) {
         this.primary = Theme.initColorWithVariants(primary);
         this.secondary = Theme.initSecondaryColor(this.primary);
-        this.foreground = Theme.generateContrastingColor(this.primary, 5)
-        this.background = Theme.generateContrastingColor(this.foreground, 7.2)
+        this.foreground = Theme.initGroundColor(this.primary);
+        this.background = Theme.initGroundColor(this.foreground);
 
         this.info = Theme.initSupportColor(this.foreground, 175, 201);
         this.success = Theme.initSupportColor(this.foreground, 80, 139);
@@ -102,7 +115,6 @@ export default class Theme {
     static MIN_LUMINANCE = 0;
     static BLACK_RGB: RGBColor = [0, 0, 0, 1];
     static WHITE_RGB: RGBColor = [255, 255, 255, 1];
-    static LUMINANCE_DISTANCE = 0.0069;
 
     static contrastRatio(...colors: Array<Color | number>) {
         // https://www.w3.org/WAI/GL/wiki/Contrast_ratio
@@ -111,6 +123,21 @@ export default class Theme {
         let dark = Math.min(...lums),
             light = Math.max(...lums);
         return (light + this.CONTRAST_RATIO_NUM) / (dark + this.CONTRAST_RATIO_NUM);
+    }
+    static derriveLuminanceUsingDark(luminance: number, ratio: number) {
+        // (x + 0.05) / (0 + 0.05) = 21 || x = 1
+        return BigNumber(ratio.toString())
+            .times(BigNumber(luminance.toString()).plus(this.CONTRAST_RATIO_NUM))
+            .minus(this.CONTRAST_RATIO_NUM).toNumber();
+    }
+
+    static derriveLuminanceUsingLight(luminance: number, ratio: number) {
+        // (1 + 0.05) / (x + 0.05) = 21 || x = 0
+        // https://www.geogebra.org/solver?i=(0.9%2B0.05)%2F(x%2B0.05)%3D4.5
+        let r = BigNumber("1").div(BigNumber(ratio.toString()));
+        let l = BigNumber("1").div(BigNumber(luminance).plus(this.CONTRAST_RATIO_NUM))
+        let ll = l.times(this.CONTRAST_RATIO_NUM)
+        return r.minus(ll).div(l).toNumber();
     }
 
     static derriveLuminance(ratio: number, luminance: number) {
@@ -143,7 +170,7 @@ export default class Theme {
         return -1;
     }
 
-    static generateContrastingColor(color: Color, ratio = 4.5): ColorWithVariants {
+    static generateContrastingColor(color: Color, ratio = 4.5, i = 0): ColorWithVariants {
         let targetLuminance = this.derriveLuminance(ratio, color.luminance);
 
         if (targetLuminance < 0) {
@@ -153,6 +180,8 @@ export default class Theme {
         }
 
         let newColorIsDarker = color.luminance > 0.5
+
+        let options: Array<RGBColor> = []
 
         let bestColorOption: undefined | RGBColor;
         const LUM_DIST = 0.2;
@@ -165,6 +194,7 @@ export default class Theme {
                 if (!bestColorOption) {
                     bestColorOption = rgb;
                 } else {
+                    options.push(rgb)
                     let bestContrastRatio = this.contrastRatio(color, RGBToLuminance(rgb)),
                         cr = this.contrastRatio(color, luminance);
 
@@ -173,31 +203,18 @@ export default class Theme {
             }
         }
 
-        console.log(bestColorOption)
+        bestColorOption = options[i % options.length]
 
         if (!bestColorOption) bestColorOption = color.luminance > 0.5 ? this.BLACK_RGB : this.WHITE_RGB;
-
-
 
         // console.log("No color found!", targetLuminance)
         return this.initColorWithVariants(bestColorOption);
     }
 
     static initSecondaryColor(color: Color) {
-        let diff = (n1: number, n2: number) => Math.max(n1, n2) - Math.min(n1, n2)
-        let colorRGBSum = sumRGB(color.rgb);
-
-        let colorEntries = colors.reduce<ColorEntries>((entries, entry) => (numsAreClose(entry[2], color.luminance, this.LUMINANCE_DISTANCE) ? [...entries, entry] : entries), [])
-        let colorEntry = colorEntries.reduce((bestEntry, entry) => {
-            let bestSum = sumRGB(bestEntry[0]), entryRGBSum = sumRGB(entry[0])
-
-            if (diff(colorRGBSum, bestSum) < diff(colorRGBSum, entryRGBSum)) return entry;
-
-            return bestEntry
-        }, colorEntries[0]);
-
-
-        return this.initColorWithVariants(colorEntry[0])
+        const LUMINANCE_DISTANCE = 0.01;
+        let colorEntries = colors.reduce<ColorEntries>((entries, entry) => (numsAreClose(entry[2], color.luminance, LUMINANCE_DISTANCE) ? [...entries, entry] : entries), [])
+        return this.initColorWithVariants(colorEntries[0][0])
     }
 
     static initSupportColor(color: Color, rangeStart: number, rangeEnd: number): Color {
@@ -242,6 +259,39 @@ export default class Theme {
 
     }
 
+    static initGroundColor(color: Color, ratio = 7): ColorWithVariants {
+        let targetLuminance: number = this.derriveLuminanceUsingLight(color.luminance, ratio);
+        if (targetLuminance < 0) targetLuminance = this.derriveLuminanceUsingDark(color.luminance, ratio)
+        if (targetLuminance > 1) targetLuminance = 0
+
+        return this.initSecondaryColor({ luminance: targetLuminance, rgb: this.BLACK_RGB, hex: "", hsl: [0, 0, 0] })
+    }
+
+    static stripThemeToHexValues(theme: Theme): HexOnlyTheme {
+        const reduceColorWithVariants = ({ hex, variants }: ColorWithVariants): HexOnlyTheme["primary"] => {
+            return {
+                0: hex,
+                ...variants.reduce((res, { hex }, i) => ({
+                    ...res,
+                    [i + 1]: hex
+                }), {})
+            }
+        }
+
+
+        return {
+            primary: reduceColorWithVariants(theme.primary),
+            secondary: reduceColorWithVariants(theme.secondary),
+            foreground: reduceColorWithVariants(theme.foreground),
+            background: reduceColorWithVariants(theme.background),
+
+            info: theme.info.hex,
+            success: theme.success.hex,
+            danger: theme.danger.hex,
+            warning: theme.warning.hex
+
+        }
+    }
 
     static convertThemeIntoAMoreReadableObject(theme: Theme) {
         let colors: Record<string, any> = {};

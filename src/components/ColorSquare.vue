@@ -1,21 +1,12 @@
 <script lang="ts" setup>
-import { RGBColor, RGBToHex } from '../lib/color';
-
-
 defineProps<{
-    color: RGBColor
+    color: string
 }>()
-
-const click = (c: any) => {
-    console.log(
-        c.slice(0, 3).join(" "), RGBToHex(c)
-    )
-}
 
 </script>
 
 <template>
-    <span class="square" @click="() => click(color)"></span>
+    <span class="square"></span>
 </template>
 
 <style lang="scss" scoped>
@@ -26,6 +17,6 @@ const click = (c: any) => {
     width: $size;
     height: $size;
     border-radius: 3px;
-    background-color: v-bind("RGBToHex(color,true)");
+    background-color: v-bind(color);
 }
 </style>
