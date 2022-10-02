@@ -262,7 +262,7 @@ export default class Theme {
     static initGroundColor(color: Color, ratio = 7): ColorWithVariants {
         let targetLuminance: number = this.derriveLuminanceUsingLight(color.luminance, ratio);
         if (targetLuminance < 0) targetLuminance = this.derriveLuminanceUsingDark(color.luminance, ratio)
-        if (targetLuminance > 1) targetLuminance = 0
+        if (targetLuminance > 1) targetLuminance = 1
 
         return this.initSecondaryColor({ luminance: targetLuminance, rgb: this.BLACK_RGB, hex: "", hsl: [0, 0, 0] })
     }
