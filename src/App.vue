@@ -8,40 +8,60 @@ import Navbar from "./components/Navbar.vue";
 import ColorSquare from "./components/ColorSquare.vue";
 import { hexToRGB } from "./lib/color";
 import PreJSON from "./components/PreJSON.vue";
+import useHash from "./lib/hash";
+
+
+interface HashData {
+  primary: string;
+}
+
+const Hash = useHash<HashData>({
+  serialize(data) {
+    return data.primary
+  },
+  deSerialize(data) {
+    return {
+      primary: data + ""
+    }
+  }
+});
+
+const setPrimary = (primary: string) => {
+  Hash.update({
+    primary
+  });
+}
+
+Hash.subscribe((data) => {
+  if (!data) return;
+  console.log(data)
+  theme.value = new Theme(hexToRGB(data.primary));
+});
+
+const theme = ref(new Theme(hexToRGB("#5838c8")));
+
 
 fetch("./colors.sorted.json")
   .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
   .then(entries => colors.push(...entries))
   .finally(() => {
-    setTheme(new Theme(theme.value.primary.rgb))
-  })
-
-const setTheme = (value: Theme) => {
-  window.location.hash = value.primary.hex
-  theme.value = value
-}
-
-let startColor = colors[Math.floor(Math.random() * 800)][0]
-if (location.hash) {
-  startColor = hexToRGB(location.hash)
-}
-
-const theme = ref(new Theme(startColor));
+    // setTheme(new Theme(theme.value.primary.rgb))
+  });
 
 </script>
 
 <template>
   <div id="page-wrapper">
-    <Navbar :theme="theme" :set-theme="setTheme" />
+    <Navbar :theme="theme" :set-primary="setPrimary" />
     <main>
       <h2>What?</h2>
       <p>This page is an attempt at dynamically generating a color scheme for a web page.</p>
-      
+
       <h2>How?</h2>
       <p>To generate a new color scheme press the button with the content "Generate!", the button can be found in the
         top right of the page. If you press the square to the left of the generate button you can select an input color.
       </p>
-      
+
       <h2>How does this work?</h2>
       <p>The color scheme is generated using an input color. Upon the input color other colors are created. The colors
         are chosen based upon the contrast ratio between the colors.</p>

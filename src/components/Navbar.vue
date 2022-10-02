@@ -1,25 +1,22 @@
 <script setup lang="ts">
-import { hexToRGB } from '../lib/color';
 import { colors } from '../lib/colors';
 import Theme from '../lib/theme';
 import Button from './Button.vue';
 
-let { setTheme, theme } = defineProps<{
-    setTheme: (theme: Theme) => void
+let { setPrimary, theme } = defineProps<{
+    setPrimary: (primary: string) => void
     theme: Theme
 }>();
 
 
 const generate = () => {
     let entry = colors[Math.floor(Math.random() * colors.length)];
-    setTheme(new Theme(
-        entry[0]
-    ))
+    setPrimary(entry[1])
 }
 
 const handleColorInput: HTMLInputElement["oninput"] = (event) => {
     if (!(event.target instanceof HTMLInputElement)) return;
-    setTheme(new Theme(hexToRGB(event.target.value)))
+    setPrimary(event.target.value);
 }
 
 </script>
