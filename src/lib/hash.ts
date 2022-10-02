@@ -12,7 +12,7 @@
         unsubscribe - removes function
 */
 
-export type HashSubscriberFunc<T> = (data: T | undefined) => void;
+export type HashListenerFunc<T> = (data: T | undefined) => void;
 
 export type HashConfig<T> = {
     serialize(data: T): string
@@ -32,11 +32,11 @@ export default function useHash<T>({
         throw new Error("Window is undefined.")
     }
 
-    const subscribers: Array<HashSubscriberFunc<T>> = [];
+    const listeners: Array<HashListenerFunc<T>> = [];
 
     const dispatch = (data: T | undefined): void => {
-        for (let subscriber of subscribers) {
-            subscriber(data);
+        for (let listener of listeners) {
+            listener(data);
         }
     }
 
@@ -56,11 +56,11 @@ export default function useHash<T>({
         delete(): void {
             window.location.hash = ""
         },
-        subscribe(subscriber: HashSubscriberFunc<T>): number {
-            return subscribers.push(subscriber);
+        listen(subscriber: HashListenerFunc<T>): number {
+            return listeners.push(subscriber);
         },
-        unSubscribe(subscriberIdx: number): boolean {
-            return delete subscribers[subscriberIdx - 1];
+        removeListener(listenerIdx: number): boolean {
+            return delete listeners[listenerIdx - 1];
         }
     }
 }

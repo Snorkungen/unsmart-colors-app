@@ -17,11 +17,12 @@ interface HashData {
 
 const Hash = useHash<HashData>({
   serialize(data) {
-    return data.primary
+    return data.primary;
   },
-  deSerialize(data) {
+  deSerialize(hex) {
+    if (!hex) throw new Error("Primary Missing")
     return {
-      primary: data + ""
+      primary: "#" + hex
     }
   }
 });
@@ -32,20 +33,20 @@ const setPrimary = (primary: string) => {
   });
 }
 
-Hash.subscribe((data) => {
+Hash.listen((data) => {
   if (!data) return;
-  console.log(data)
   theme.value = new Theme(hexToRGB(data.primary));
 });
 
-const theme = ref(new Theme(hexToRGB("#5838c8")));
-
+const theme = ref(new Theme(hexToRGB(Hash.data?.primary ||  "#5838c8")));
 
 fetch("./colors.sorted.json")
   .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
   .then(entries => colors.push(...entries))
   .finally(() => {
-    // setTheme(new Theme(theme.value.primary.rgb))
+    Hash.update({
+      primary : theme.value.primary.hex
+    })
   });
 
 </script>
