@@ -2,6 +2,7 @@
 import { colors } from '../lib/colors';
 import Theme from '../lib/theme';
 import Button from './Button.vue';
+import ColorPicker from './ColorPicker.vue';
 
 let { setPrimary, theme } = defineProps<{
     setPrimary: (primary: string) => void
@@ -25,7 +26,8 @@ const handleColorInput: HTMLInputElement["oninput"] = (event) => {
     <nav>
         <h1>UnSmart Colors App</h1>
         <div>
-            <input @input="handleColorInput" type="color" :value="theme.primary.hex" />
+            <ColorPicker :value="theme.primary.hex"  :input="(hex) => setPrimary(hex)" /> 
+            <!-- <input @input="handleColorInput" type="color" :value="theme.primary.hex" /> -->
             <Button @click="generate" variant="secondary">Generate!</Button>
         </div>
     </nav>
@@ -42,7 +44,7 @@ nav {
     background-color: var(--primary);
     color: var(--foreground);
 
-    >div {
+    > div {
         display: grid;
         grid-template-columns: auto auto;
         place-items: center;
