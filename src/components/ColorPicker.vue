@@ -10,7 +10,7 @@ export interface ColorPickerProps {
 
 const props = defineProps<ColorPickerProps>();
 
-const pickerIsOpen = ref<boolean>(/* false */ true);
+const pickerIsOpen = ref<boolean>(false);
 
 const hueValue = ref(0)
 const saturationValue = ref(0)
@@ -20,17 +20,6 @@ const redValue = ref(0);
 const blueValue = ref(0);
 const greenValue = ref(0);
 
-const initRefs = ({ value }: ColorPickerProps) => {
-    const rgb = hexToRGB(value);
-    const [hue, saturation, lightness] = HSLToInts(RGBToHSL(rgb))
-
-    hueValue.value = hue;
-    saturationValue.value = saturation;
-    lightnessValue.value = lightness;
-}
-watch(props, initRefs)
-
-
 const updateRGBValues = () => {
     let [red, green, blue] = HSLToRGB([hueValue.value / 360, saturationValue.value / 100, lightnessValue.value / 100])
 
@@ -39,12 +28,13 @@ const updateRGBValues = () => {
     blueValue.value = blue;
 }
 
-watch(hueValue, updateRGBValues);
-watch(saturationValue, updateRGBValues);
-watch(lightnessValue, updateRGBValues);
+const updateHSLValues = () => {
+    let [hue, saturation, lightness] = HSLToInts(RGBToHSL([redValue.value, greenValue.value, blueValue.value]));
 
-initRefs(props)
-
+    hueValue.value = hue;
+    saturationValue.value = saturation;
+    lightnessValue.value = lightness;
+}
 
 const selectColor = () => {
     let hex = RGBToHex([redValue.value, greenValue.value, blueValue.value]);
@@ -52,11 +42,44 @@ const selectColor = () => {
     pickerIsOpen.value = false;
 }
 
+const inputNumber = (event: Event, max = 255, fallback = 0): number =>
+    Math.min(max, Math.max(0, (event.target as HTMLInputElement).valueAsNumber || fallback));
+
+const HEX_REGEX = /^([A-F0-9]{3}|[A-F0-9]{6})$/i
+const inputHex = (event: Event) => {
+    if (!(event.target instanceof HTMLInputElement)) return;
+    let { value } = event.target;
+
+    value = value.trim();
+    if (value.at(0) === "#") value = value.substring(1);
+    if (!HEX_REGEX.test(value)) return;
+
+    const [red, green, blue] = hexToRGB(value);
+
+    redValue.value = red;
+    greenValue.value = green;
+    blueValue.value = blue;
+
+    updateHSLValues();
+}
+
+const initRefs = ({ value }: ColorPickerProps) => {
+    const [red, green, blue] = hexToRGB(value);
+
+    redValue.value = red;
+    greenValue.value = green;
+    blueValue.value = blue;
+
+    updateHSLValues();
+}
+
+watch(props, initRefs)
+initRefs(props)
 </script>
 
 <template>
     <div class="container">
-        <div class="preview" @click="() => pickerIsOpen = !pickerIsOpen"></div>
+        <button class="preview" @click="() => pickerIsOpen = !pickerIsOpen"></button>
 
         <div class="picker-container" v-bind:class="pickerIsOpen ? '' : 'hidden'">
             <header>
@@ -65,32 +88,38 @@ const selectColor = () => {
             <div class="picker">
                 <div class="range-container">
                     <input id="HUE_RANGE" type="range" min="0" max="360" :value="hueValue"
-                        @input="({target}) => hueValue = (target as HTMLInputElement).valueAsNumber">
+                        @input="(event) => {hueValue =  inputNumber(event,360,hueValue); updateRGBValues() }">
                     <label for="HUE_NUMBER">Hue : <input id="HUE_NUMBER" type="number" min="0" max="360"
                             :value="hueValue"
-                            @input="({target}) => hueValue = (target as HTMLInputElement).valueAsNumber"></label>
+                            @input="(event) => {hueValue =  inputNumber(event,360,hueValue); updateRGBValues() }"></label>
                 </div>
                 <div class="range-container">
                     <input id="SATURATION_RANGE" type="range" min="0" max="100" :value="saturationValue"
-                        @input="({target}) => saturationValue = (target as HTMLInputElement).valueAsNumber">
+                        @input="(event) => {saturationValue = inputNumber(event,100,saturationValue); updateRGBValues()}">
                     <label for="SATURATION_NUMBER">Sat : <input id="SATURATION_NUMBER" type="number" min="0" max="100"
                             :value="saturationValue"
-                            @input="({target}) => saturationValue = (target as HTMLInputElement).valueAsNumber"></label>
+                            @input="(event) => {saturationValue = inputNumber(event,100,saturationValue); updateRGBValues()}"></label>
                 </div>
                 <div class="range-container">
                     <input id="LIGHTNESS_RANGE" type="range" min="0" max="100" :value="lightnessValue"
-                        @input="({target}) => lightnessValue = (target as HTMLInputElement).valueAsNumber">
+                        @input="(event) => {lightnessValue = inputNumber(event,100,lightnessValue); updateRGBValues()}">
                     <label for="LIGHTNESS_NUMBER">Lum : <input id="LIGHTNESS_NUMBER" type="number" min="0" max="100"
                             :value="lightnessValue"
-                            @input="({target}) => lightnessValue = (target as HTMLInputElement).valueAsNumber"></label>
+                            @input="(event) => {lightnessValue = inputNumber(event,100,lightnessValue); updateRGBValues()}"></label>
                 </div>
             </div>
             <footer>
                 <div class="show">
-                    <!-- <div class="text-values">
-                        <p>{{RGBToHex([redValue,greenValue,blueValue])}}</p>
-                        <p>({{redValue}},{{greenValue}},{{blueValue}})</p>
-                    </div> -->
+                    <p>#<input type="text" :value="RGBToHex([redValue,greenValue,blueValue]).substring(1)"
+                            @change="inputHex"></p>
+                    <div class="rgb">
+                        <label for="RED_NUMBER">R: <input id="RED_NUMBER" :value="redValue" type="number"
+                                @input="(event) => {redValue = inputNumber(event,255,redValue); updateHSLValues()}"></label>
+                        <label for="GREEN_NUMBER">G: <input id="GREEN_NUMBER" :value="greenValue" type="number"
+                                @input="(event) => {greenValue = inputNumber(event,255,greenValue); updateHSLValues()}"></label>
+                        <label for="BLUE_NUMBER">B: <input id="BLUE_NUMBER" :value="blueValue" type="number"
+                                @input="(event) => {blueValue = inputNumber(event,255,blueValue); updateHSLValues()}"></label>
+                    </div>
                     <div class="preview"></div>
                 </div>
                 <Button variant="secondary" @click="selectColor">Select</Button>
@@ -111,13 +140,19 @@ const selectColor = () => {
     background-color: v-bind(value);
     border: 2px solid;
     border-color: var(--foreground);
+    border-radius: 4px;
+    transition: border-color linear 250ms;
+}
+
+button.preview {
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--primary-3);
+    }
 }
 
 .container {
-    // position: relative;
-
-
-
     .picker-container {
         position: absolute;
 
@@ -144,7 +179,6 @@ const selectColor = () => {
             --saturation: v-bind(saturationValue + "%");
             --lightness: v-bind(lightnessValue + "%");
 
-
             padding: 2em 1em;
 
             .range-container {
@@ -154,6 +188,7 @@ const selectColor = () => {
 
                 input[type=range] {
                     -webkit-appearance: none;
+                    appearance: none;
 
                     width: 100%;
                     height: 2em;
@@ -198,27 +233,6 @@ const selectColor = () => {
                     justify-content: space-between;
                 }
 
-                input[type=number] {
-                    text-align: center;
-                    width: 4ch;
-
-                    background-color: var(--background);
-                    color: var(--foreground);
-                    font-weight: 600;
-
-                    border: none;
-                    border-radius: 4px;
-                }
-            }
-
-
-
-            /* Remove Arrow from number input */
-            input[type=number],
-            input::-webkit-outer-spin-button,
-            input::-webkit-inner-spin-button {
-                -webkit-appearance: none;
-                -moz-appearance: textfield;
             }
         }
 
@@ -230,18 +244,49 @@ const selectColor = () => {
             .show {
                 flex-grow: 2;
                 margin: 0 1em;
-            }
+                display: grid;
+                grid-template-areas: "a b" "c c";
+                place-items: center;
+                row-gap: 0.5em;
+                input[type=text] {
+                    width: 7ch;
+                }
 
-            .text-values>p {
-                display: inline-block;
-                margin: 0 5px;
+                label {
+                    font-weight: 600;
+                    padding: 4px;
+                }
             }
 
             .preview {
                 background-color: v-bind("RGBToHex([redValue, greenValue, blueValue])");
-
+                grid-column: 1 / 3;
                 width: 100%;
             }
+        }
+
+        input {
+            text-align: center;
+
+            background-color: var(--background);
+            color: var(--foreground);
+            font-weight: 600;
+
+            border: none;
+            border-radius: 3px;
+            padding: 0.1em;
+        }
+
+        input[type=number] {
+            width: 4ch;
+        }
+
+        /* Remove Arrow from number input */
+        input[type=number],
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
         }
 
         &.hidden {
