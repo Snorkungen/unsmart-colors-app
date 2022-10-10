@@ -7,7 +7,6 @@ import Theme from "./lib/theme";
 import Navbar from "./components/Navbar.vue";
 import ColorSquare from "./components/ColorSquare.vue";
 import { hexToRGB } from "./lib/color";
-import PreJSON from "./components/PreJSON.vue";
 import useHash from "./lib/hash";
 
 
@@ -38,14 +37,14 @@ Hash.listen((data) => {
   theme.value = new Theme(hexToRGB(data.primary));
 });
 
-const theme = ref(new Theme(hexToRGB(Hash.data?.primary ||  "#5838c8")));
+const theme = ref(new Theme(hexToRGB(Hash.data?.primary || "#5838c8")));
 
 fetch("./colors.sorted.json")
   .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
   .then(entries => colors.push(...entries))
   .finally(() => {
     Hash.update({
-      primary : theme.value.primary.hex
+      primary: theme.value.primary.hex
     })
   });
 
@@ -71,18 +70,47 @@ fetch("./colors.sorted.json")
       <div class="code">
         <template v-for="(color, name) in Theme.stripThemeToHexValues(theme)">
           <template v-if="typeof color == 'object'">
-            <pre v-for="(hex,key) in color">--{{ name }}-{{ key }}:<ColorSquare :color="hex" /> {{ hex }};</pre>
+            <span v-for="(hex,key) in color">
+              <span>--{{ name }}-{{ key }}:</span>
+              <ColorSquare :color="hex" /> <span class="ck">{{ hex }}</span>;<br />
+            </span>
           </template>
           <template v-else>
-            <pre>--{{ name }}:<ColorSquare :color="color" /> {{ color }};</pre>
+            <span>
+              <span>--{{ name }}:</span>
+              <ColorSquare :color="color" /> <span class="ck">{{ color }}</span>;<br />
+            </span>
           </template>
         </template>
       </div>
 
       <div class="code">
-        <PreJSON :json="JSON.stringify(Theme.stripThemeToHexValues(theme),null,4)" />
+        <span>{<br /></span>
+        <span v-for="(color, name,index) in Theme.stripThemeToHexValues(theme)">
+          <span>&nbsp;&nbsp;</span>
+          <span>{{name}}:</span>
+          <template v-if="typeof color == 'object'">
+            <span>{ <br /></span>
+            <span v-for="(value,key,jindex) in color">
+              <span>&nbsp;&nbsp;</span>
+              <span>&nbsp;&nbsp;</span>
+              <span>{{key}}</span>:<ColorSquare :color="value" /> <span class="ck">"{{value}}"</span>
+              <span v-if="jindex < Object.keys(color).length - 1">,</span>
+              <br />
+            </span>
+            <span>&nbsp;&nbsp;</span>
+            <span>}</span>
+          </template>
+          <template v-else>
+            <ColorSquare :color="color" />
+            <span class="ck"> "{{color}}"</span>
+          </template>
+          <span v-if="index < Object.keys(Theme.stripThemeToHexValues(theme)).length - 1">,</span>
+          <br />
+        </span>
+        <span>}</span>
       </div>
-
+      
     </main>
     <footer>
       <p>UnSmart Colors App</p>
@@ -149,17 +177,21 @@ fetch("./colors.sorted.json")
 }
 
 .code {
+  font-family: monospace;
   background-color: var(--foreground);
-  color: var(--primary);
+  color: var(--background);
   filter: drop-shadow(0 0 15px var(--background-3));
   font-weight: 600;
   font-size: 1.5em;
   margin: 1em auto;
-  padding: 1em;
+  padding: 2em;
   border-radius: 3px;
   text-align: left;
-
   width: 100%;
+
+  .ck {
+    color: var(--primary);
+  }
 }
 
 footer {
