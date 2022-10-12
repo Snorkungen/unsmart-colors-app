@@ -39,14 +39,6 @@ Hash.listen((data) => {
 
 const theme = ref(new Theme(hexToRGB(Hash.data?.primary || "#5838c8")));
 
-fetch("./colors.sorted.json")
-  .then<ColorEntries>(res => res.status === 200 ? res.json() : [])
-  .then(entries => colors.push(...entries))
-  .finally(() => {
-    Hash.update({
-      primary: theme.value.primary.hex
-    })
-  });
 
 </script>
 
@@ -67,6 +59,7 @@ fetch("./colors.sorted.json")
         are chosen based upon the contrast ratio between the colors.</p>
       <h2>The colors.</h2>
 
+      <!-- CSS Variables -->
       <div class="code">
         <template v-for="(color, name) in Theme.stripThemeToHexValues(theme)">
           <template v-if="typeof color == 'object'">
@@ -84,17 +77,19 @@ fetch("./colors.sorted.json")
         </template>
       </div>
 
+      <!-- JSON -->
       <div class="code">
         <span>{<br /></span>
         <span v-for="(color, name,index) in Theme.stripThemeToHexValues(theme)">
           <span>&nbsp;&nbsp;</span>
-          <span>{{name}}:</span>
+          <span>"{{name}}":</span>
           <template v-if="typeof color == 'object'">
             <span>{ <br /></span>
             <span v-for="(value,key,jindex) in color">
               <span>&nbsp;&nbsp;</span>
               <span>&nbsp;&nbsp;</span>
-              <span>{{key}}</span>:<ColorSquare :color="value" /> <span class="ck">"{{value}}"</span>
+              <span>{{key}}</span>:
+              <ColorSquare :color="value" /> <span class="ck">"{{value}}"</span>
               <span v-if="jindex < Object.keys(color).length - 1">,</span>
               <br />
             </span>
@@ -110,7 +105,7 @@ fetch("./colors.sorted.json")
         </span>
         <span>}</span>
       </div>
-      
+
     </main>
     <footer>
       <p>UnSmart Colors App</p>
@@ -159,6 +154,11 @@ fetch("./colors.sorted.json")
   display: flex;
   flex-direction: column;
 
+  &,
+  >* {
+    transition: all 100ms linear;
+  }
+
   main {
     flex-grow: 2;
     max-width: 66ch;
@@ -179,7 +179,7 @@ fetch("./colors.sorted.json")
 .code {
   font-family: monospace;
   background-color: var(--foreground);
-  color: var(--background);
+  color: var(--secondary);
   filter: drop-shadow(0 0 15px var(--background-3));
   font-weight: 600;
   font-size: 1.5em;

@@ -40,7 +40,7 @@ export default class Theme {
         this.primary = Theme.initColorWithVariants(primary);
         this.secondary = Theme.initSecondaryColor(this.primary);
         this.foreground = Theme.initGroundColor(this.primary);
-        this.background = Theme.initGroundColor(this.foreground);
+        this.background = Theme.initGroundColor(this.foreground,7.4);
 
         this.info = Theme.initSupportColor(this.foreground, 175, 201);
         this.success = Theme.initSupportColor(this.foreground, 80, 139);
@@ -170,51 +170,19 @@ export default class Theme {
         return -1;
     }
 
-    static generateContrastingColor(color: Color, ratio = 4.5, i = 0): ColorWithVariants {
-        let targetLuminance = this.derriveLuminance(ratio, color.luminance);
-
-        if (targetLuminance < 0) {
-            return this.initColorWithVariants(
-                color.luminance > 0.5 ? this.BLACK_RGB : this.WHITE_RGB
-            )
-        }
-
-        let newColorIsDarker = color.luminance > 0.5
-
-        let options: Array<RGBColor> = []
-
-        let bestColorOption: undefined | RGBColor;
-        const LUM_DIST = 0.2;
-        for (let entry of colors) {
-            let [rgb, , luminance] = entry;
-
-            // (newColorIsDarker ? luminance < targetLuminance : luminance > targetLuminance)
-
-            if (numsAreClose(targetLuminance, luminance, 0, newColorIsDarker ? LUM_DIST : undefined, !newColorIsDarker ? LUM_DIST : undefined)) {
-                if (!bestColorOption) {
-                    bestColorOption = rgb;
-                } else {
-                    options.push(rgb)
-                    let bestContrastRatio = this.contrastRatio(color, RGBToLuminance(rgb)),
-                        cr = this.contrastRatio(color, luminance);
-
-                    if (cr > bestContrastRatio) bestColorOption = rgb;
-                }
-            }
-        }
-
-        bestColorOption = options[i % options.length]
-
-        if (!bestColorOption) bestColorOption = color.luminance > 0.5 ? this.BLACK_RGB : this.WHITE_RGB;
-
-        // console.log("No color found!", targetLuminance)
-        return this.initColorWithVariants(bestColorOption);
+    static findUsingLuminance(targetLuminance: number, distance: number = 0.002) {
+        return colors.filter(({ luminance }) => numsAreClose(luminance, targetLuminance, distance))
     }
 
     static initSecondaryColor(color: Color) {
-        const LUMINANCE_DISTANCE = 0.01;
-        let colorEntries = colors.reduce<ColorEntries>((entries, entry) => (numsAreClose(entry[2], color.luminance, LUMINANCE_DISTANCE) ? [...entries, entry] : entries), [])
-        return this.initColorWithVariants(colorEntries[0][0])
+        let colorEntries = this.findUsingLuminance(color.luminance)
+            // .sort(({ rgb: a }, { rgb: b }) => diff(sumRGB(b), sumRGB(color.rgb)) - diff(sumRGB(a), sumRGB(color.rgb)));
+
+        let entry = colorEntries.at(sumRGB(color.rgb) % colorEntries.length)
+
+        return this.initColorWithVariants(
+            entry?.rgb
+            ?? color.rgb)
     }
 
     static initSupportColor(color: Color, rangeStart: number, rangeEnd: number): Color {
@@ -227,7 +195,7 @@ export default class Theme {
         let bestEntry: ColorEntry | undefined;
 
         for (let entry of colors) {
-            let [hue, saturation, lightness] = RGBToHSL(entry[0]);
+            let [hue, saturation, lightness] = RGBToHSL(entry.rgb);
 
             let saturationIsWithinParameters = saturation <= maxSaturation && saturation >= minSaturation;
             let lightnessIsWithinParameters = lightness <= maxLightness && lightness >= minLightness;
@@ -245,8 +213,8 @@ export default class Theme {
                 continue;
             }
 
-            let bestEntryDiff = diff(bestEntry[2], color.luminance),
-                entryDiff = diff(entry[2], color.luminance);
+            let bestEntryDiff = diff(bestEntry.luminance, color.luminance),
+                entryDiff = diff(entry.luminance, color.luminance);
 
             if (entryDiff > bestEntryDiff) {
                 bestEntry = entry;
@@ -254,17 +222,24 @@ export default class Theme {
         }
 
         return this.initColor(
-            bestEntry ? bestEntry[0] : HSLToRGB([rangeEnd / 360, 0.5, 0.6])
+            bestEntry ? bestEntry.rgb : HSLToRGB([rangeEnd / 360, 0.5, 0.6])
         )
 
     }
 
     static initGroundColor(color: Color, ratio = 7): ColorWithVariants {
         let targetLuminance: number = this.derriveLuminanceUsingLight(color.luminance, ratio);
-        if (targetLuminance < 0) targetLuminance = this.derriveLuminanceUsingDark(color.luminance, ratio)
-        if (targetLuminance > 1) targetLuminance = 1
 
-        return this.initSecondaryColor({ luminance: targetLuminance, rgb: this.BLACK_RGB, hex: "", hsl: [0, 0, 0] })
+        if (targetLuminance < 0) targetLuminance = this.derriveLuminanceUsingDark(color.luminance, ratio)
+        if (targetLuminance > 1) targetLuminance = 0
+
+        const GROUND_COLOR_IS_BLACK_OR_WHITE = false;
+
+        if (GROUND_COLOR_IS_BLACK_OR_WHITE) return this.initColorWithVariants(targetLuminance > color.luminance ? this.WHITE_RGB : this.BLACK_RGB)
+
+        const entries = this.findUsingLuminance(targetLuminance);
+
+        return this.initColorWithVariants(entries[0].rgb)
     }
 
     static stripThemeToHexValues(theme: Theme): HexOnlyTheme {
@@ -293,28 +268,6 @@ export default class Theme {
         }
     }
 
-    static convertThemeIntoAMoreReadableObject(theme: Theme) {
-        let colors: Record<string, any> = {};
-        for (let color of ["primary", "secondary", "foreground", "background"]) {
-            let { hex, variants } = theme[color as "primary"];
-            colors[color] = {
-                "1": hex
-            };
-            variants.forEach(({ hex }, i) => {
-                colors[color] = {
-                    ...colors[color],
-                    [i + 2]: hex
-                }
-            })
-        }
-
-        colors["danger"] = theme.danger.hex
-        colors["success"] = theme.success.hex
-        colors["warning"] = theme.warning.hex
-        colors["info"] = theme.info.hex
-
-        return colors;
-    }
 }
 
 

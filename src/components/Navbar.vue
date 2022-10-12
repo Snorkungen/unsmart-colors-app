@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RGBToHex } from '../lib/color';
 import { colors } from '../lib/colors';
 import Theme from '../lib/theme';
 import Button from './Button.vue';
@@ -12,7 +13,7 @@ let { setPrimary, theme } = defineProps<{
 
 const generate = () => {
     let entry = colors[Math.floor(Math.random() * colors.length)];
-    setPrimary(entry[1])
+    setPrimary(RGBToHex(entry.rgb))
 }
 
 const handleColorInput: HTMLInputElement["oninput"] = (event) => {
