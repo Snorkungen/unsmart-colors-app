@@ -156,7 +156,7 @@ const theme = ref(new Theme(hexToRGB(Hash.data?.primary || "#5838c8")));
 
   &,
   >* {
-    transition: all 100ms linear;
+    transition: all 10ms linear;
   }
 
   main {

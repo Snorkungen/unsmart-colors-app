@@ -26,6 +26,19 @@ export interface ColorWithVariants extends Color {
     variants: Array<Color>;
 }
 
+export interface ThemeConfigurationOptions {
+    // FG & BG are going to have the largest contrast possible
+    maxContrast?: boolean;
+    fgMaxContrast?: boolean;
+    bgMaxContrast?: boolean;
+
+}
+
+function createTheme(primary: string | RGBColor, options: ThemeConfigurationOptions = {}) {
+    if (typeof primary === "string") primary = hexToRGB(primary);
+    return new Theme(primary, options)
+}
+
 export default class Theme {
     primary: ColorWithVariants;
     secondary: ColorWithVariants;
@@ -36,11 +49,14 @@ export default class Theme {
     danger: Color;
     success: Color;
 
-    constructor(primary: RGBColor) {
+    constructor(primary: RGBColor, options: ThemeConfigurationOptions = {bgMaxContrast : true}) {
+        const FG_RATIO = 7,
+            BG_RATIO = 7.3;
+
         this.primary = Theme.initColorWithVariants(primary);
         this.secondary = Theme.initSecondaryColor(this.primary);
-        this.foreground = Theme.initGroundColor(this.primary);
-        this.background = Theme.initGroundColor(this.foreground,7.4);
+        this.foreground = Theme.initGroundColor(this.primary, FG_RATIO, options.fgMaxContrast ?? options.maxContrast);
+        this.background = Theme.initGroundColor(this.foreground, BG_RATIO, options.bgMaxContrast ?? options.maxContrast);
 
         this.info = Theme.initSupportColor(this.foreground, 175, 201);
         this.success = Theme.initSupportColor(this.foreground, 80, 139);
@@ -176,7 +192,7 @@ export default class Theme {
 
     static initSecondaryColor(color: Color) {
         let colorEntries = this.findUsingLuminance(color.luminance)
-            // .sort(({ rgb: a }, { rgb: b }) => diff(sumRGB(b), sumRGB(color.rgb)) - diff(sumRGB(a), sumRGB(color.rgb)));
+        // .sort(({ rgb: a }, { rgb: b }) => diff(sumRGB(b), sumRGB(color.rgb)) - diff(sumRGB(a), sumRGB(color.rgb)));
 
         let entry = colorEntries.at(sumRGB(color.rgb) % colorEntries.length)
 
@@ -227,15 +243,16 @@ export default class Theme {
 
     }
 
-    static initGroundColor(color: Color, ratio = 7): ColorWithVariants {
+    static initGroundColor(color: Color, ratio = 7, maxContrast?: boolean): ColorWithVariants {
         let targetLuminance: number = this.derriveLuminanceUsingLight(color.luminance, ratio);
 
         if (targetLuminance < 0) targetLuminance = this.derriveLuminanceUsingDark(color.luminance, ratio)
         if (targetLuminance > 1) targetLuminance = 0
 
-        const GROUND_COLOR_IS_BLACK_OR_WHITE = false;
 
-        if (GROUND_COLOR_IS_BLACK_OR_WHITE) return this.initColorWithVariants(targetLuminance > color.luminance ? this.WHITE_RGB : this.BLACK_RGB)
+        if (maxContrast) {
+            targetLuminance = targetLuminance > color.luminance ? 0.99 : 0;
+        }
 
         const entries = this.findUsingLuminance(targetLuminance);
 
