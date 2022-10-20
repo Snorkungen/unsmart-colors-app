@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img"
+    width="50" height="50" viewBox="0 0 100 100" stroke-width="8" color="#5838c8" fill="#ffff5a">
+    <!-- Background -->
+    <!-- <path d="m0 0h100v100h-100Z" stroke="currentColor" fill="fillColor" > -->
+    <!-- Actual Icon -->
+    <path d="M30 20q0 -10 10 -10h40q10 0 10 10v40q0 10 -10 10h-40q-10 0 -10 -10z
+        M30 30h-10q-10 0 -10 10v40q0 10 10 10h40q10 0 10 -10v-10 h-30q-10 0 -10 -10zv-10" stroke-linejoin="round"
+        stroke="currentColor" fill="fillColor" />
+</svg>

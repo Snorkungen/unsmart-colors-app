@@ -25,7 +25,9 @@ const handleColorInput: HTMLInputElement["oninput"] = (event) => {
 
 <template>
     <nav>
-        <h1>UnSmart Colors App</h1>
+        <div>
+            <h1>UnSmart Colors App</h1>
+        </div>
         <div>
             <ColorPicker :value="theme.primary.hex"  :input="(hex) => setPrimary(hex)" /> 
             <!-- <input @input="handleColorInput" type="color" :value="theme.primary.hex" /> -->

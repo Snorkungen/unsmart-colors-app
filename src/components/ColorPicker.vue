@@ -79,7 +79,7 @@ initRefs(props)
 
 <template>
     <div class="container">
-        <button class="preview" @click="() => pickerIsOpen = !pickerIsOpen"></button>
+        <button class="preview" @click="() => pickerIsOpen = !pickerIsOpen" aria-label="Select a color"></button>
 
         <div class="picker-container" v-bind:class="pickerIsOpen ? '' : 'hidden'">
             <header>
@@ -87,7 +87,7 @@ initRefs(props)
             </header>
             <div class="picker">
                 <div class="range-container">
-                    <input id="HUE_RANGE" type="range" min="0" max="360" :value="hueValue"
+                    <input id="HUE_RANGE" type="range" min="0" max="360" :value="hueValue" aria-label="Range for hue"
                         @input="(event) => {hueValue =  inputNumber(event,360,hueValue); updateRGBValues() }">
                     <label for="HUE_NUMBER">Hue : <input id="HUE_NUMBER" type="number" min="0" max="360"
                             :value="hueValue"
@@ -110,8 +110,8 @@ initRefs(props)
             </div>
             <footer>
                 <div class="show">
-                    <p>#<input type="text" :value="RGBToHex([redValue,greenValue,blueValue]).substring(1)"
-                            @change="inputHex"></p>
+                    <label>#<input type="text" :value="RGBToHex([redValue,greenValue,blueValue]).substring(1)" aria-label="Input for colors hex value"
+                            @change="inputHex"></label>
                     <div class="rgb">
                         <label for="RED_NUMBER">R: <input id="RED_NUMBER" :value="redValue" type="number"
                                 @input="(event) => {redValue = inputNumber(event,255,redValue); updateHSLValues()}"></label>
