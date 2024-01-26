@@ -10,9 +10,23 @@ let { setPrimary, theme } = defineProps<{
     theme: Theme
 }>();
 
+let lastGeneratedIndex = Date.now() % colors.length;
+function lumhassufficientcontrastability(lum: number): boolean {
+    let t = Theme.derriveLuminanceUsingLight(lum, 7);
+    if (t < 0) {
+        if (Theme.derriveLuminanceUsingDark(lum, 7) > 1) {
+            return false
+        }
+    }
 
-const generate = () => {
-    let entry = colors[Math.floor(Math.random() * colors.length)];
+    return true;
+}
+const generate = (): void => {
+    let entry = (colors)[(lastGeneratedIndex += 1_000) % colors.length], i = 0;
+
+    while (!lumhassufficientcontrastability(entry.luminance) && i++ < 10) {
+        entry = (colors)[(lastGeneratedIndex += 21 + i) % colors.length]
+    }
     setPrimary(RGBToHex(entry.rgb))
 }
 
@@ -29,7 +43,7 @@ const handleColorInput: HTMLInputElement["oninput"] = (event) => {
             <h1>UnSmart Colors App</h1>
         </div>
         <div>
-            <ColorPicker :value="theme.primary.hex"  :input="(hex) => setPrimary(hex)" /> 
+            <ColorPicker :value="theme.primary.hex" :input="(hex) => setPrimary(hex)" />
             <!-- <input @input="handleColorInput" type="color" :value="theme.primary.hex" /> -->
             <Button @click="generate" variant="secondary">Generate!</Button>
         </div>
@@ -47,7 +61,7 @@ nav {
     background-color: var(--primary);
     color: var(--foreground);
 
-    > div {
+    >div {
         display: grid;
         grid-template-columns: auto auto;
         place-items: center;

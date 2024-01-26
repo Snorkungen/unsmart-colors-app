@@ -1,4 +1,3 @@
-import BigNumber from "bignumber.js";
 import {
 	RGBColor,
 	RGBToLuminance,
@@ -66,8 +65,8 @@ export default class Theme {
 		this.danger = Theme.initSupportColor(this.foreground, 340, 10);
 		this.warning = Theme.initSupportColor(this.foreground, 24, 47);
 
-		const logRatios = true;
-		if (logRatios) console.log(JSON.stringify(flattenObject(this.ratios), null, 4));
+
+		if ((this.constructor as typeof Theme).logRatioValues) console.log(JSON.stringify(flattenObject(this.ratios), null, 4));
 	}
 
 	get ratios() {
@@ -116,6 +115,9 @@ export default class Theme {
 	}
 
 	// !!! Below only static !!!
+	static logRatioValues = true;
+	static colors = colors;
+
 
 	static initColor(rgb: RGBColor): Color {
 		return {
@@ -180,33 +182,73 @@ export default class Theme {
 			light = Math.max(...lums);
 		return (light + this.CONTRAST_RATIO_NUM) / (dark + this.CONTRAST_RATIO_NUM);
 	}
+
 	static derriveLuminanceUsingDark(luminance: number, ratio: number) {
-		// (x + 0.05) / (0 + 0.05) = 21 || x = 1
-		return BigNumber(ratio.toString())
-			.times(BigNumber(luminance.toString()).plus(this.CONTRAST_RATIO_NUM))
-			.minus(this.CONTRAST_RATIO_NUM)
-			.toNumber();
+		// (x + 0.05) / (0 + 0.05) = 21, x = 1
+		return ratio * (luminance + this.CONTRAST_RATIO_NUM) - this.CONTRAST_RATIO_NUM;
 	}
 
 	static derriveLuminanceUsingLight(luminance: number, ratio: number) {
-		// (1 + 0.05) / (x + 0.05) = 21 || x = 0
-		// https://www.geogebra.org/solver?i=(0.9%2B0.05)%2F(x%2B0.05)%3D4.5
-		let r = BigNumber("1").div(BigNumber(ratio.toString()));
-		let l = BigNumber("1").div(BigNumber(luminance).plus(this.CONTRAST_RATIO_NUM));
-		let ll = l.times(this.CONTRAST_RATIO_NUM);
-		return r.minus(ll).div(l).toNumber();
+		// (1 + 0.05) / (x + 0.05) = 21, x = 0
+		return ((luminance + this.CONTRAST_RATIO_NUM) - ratio * this.CONTRAST_RATIO_NUM) / ratio;
+	}
+
+	static getColorEntry(
+		targetLuminance: number,
+		h?: (best: ColorEntry, entry: ColorEntry, i: number) => boolean
+	): undefined | ColorEntry {
+		const LUM_DISTANCE = 0.0025;
+
+		const entries = this.colors.filter(({ luminance }) =>
+			numsAreClose(luminance, targetLuminance, LUM_DISTANCE)
+		);
+
+		if (!h) return entries[0];
+
+		return entries.reduce((best, entry, i) => (h(best, entry, i) ? entry : best), entries[0]);
 	}
 
 	static initSecondaryColor(color: Color) {
-		let h = (best: ColorEntry, entry: ColorEntry) => {
-			let [bestHue] = RGBToHSL(best.rgb),
-				[hue] = RGBToHSL(entry.rgb);
-			return diff(color.hsl[0], bestHue) < diff(color.hsl[0], hue);
-		};
+		let optionsIndex = 0, variance = 0.002;
+		let isLight = this.derriveLuminanceUsingLight(color.luminance, 7) > 0;
 
-		let entry = getColorEntry(color.luminance, h);
+		for (let option of this.colors) {
+			if (isLight) {
+				if (!(option.luminance <= color.luminance && option.luminance > color.luminance - variance)) {
+					continue
+				}
+			} else {
+				if (!(option.luminance >= color.luminance && option.luminance < color.luminance + variance)) {
+					continue
+				}
+			}
 
-		return this.initColorWithVariants(entry?.rgb ?? color.rgb);
+			this.colorOptions[optionsIndex++] = option
+			if (optionsIndex >= this.colorOptions.length) {
+				break
+			}
+		}
+
+		if (optionsIndex == 0) {
+			// this is a fallback that is not sufficiently contrasting
+			return this.initColorWithVariants(
+				this.colorOptions[0].rgb
+			);
+		}
+
+		let best = this.colorOptions[0];
+		for (let i = 1; i < optionsIndex; i++) {
+			let entry = this.colorOptions[i];
+			let [bestHue, bestSaturation] = RGBToHSL(best.rgb),
+				[hue, saturation] = RGBToHSL(entry.rgb);
+
+			if (diff(color.hsl[1], bestSaturation) > diff(color.hsl[1], saturation) &&
+				diff(color.hsl[0], bestHue) < diff(color.hsl[0], hue)) {
+				best = entry
+			}
+		}
+
+		return this.initColorWithVariants(best.rgb)
 	}
 
 	static initSupportColor(color: Color, rangeStart: number, rangeEnd: number): Color {
@@ -220,7 +262,7 @@ export default class Theme {
 
 		let bestEntry: ColorEntry | undefined;
 
-		for (let entry of colors) {
+		for (let entry of this.colors) {
 			let [hue, saturation, lightness] = RGBToHSL(entry.rgb);
 
 			let saturationIsWithinParameters = saturation <= maxSaturation && saturation >= minSaturation;
@@ -251,11 +293,14 @@ export default class Theme {
 		return this.initColor(bestEntry ? bestEntry.rgb : HSLToRGB([rangeEnd / 360, 0.5, 0.6]));
 	}
 
+	static colorOptions = Array<ColorEntry>(1000);
 	static initGroundColor(color: Color, ratio = 7): ColorWithVariants {
-		let targetLuminance: number = this.derriveLuminanceUsingLight(color.luminance, ratio);
+		let targetLuminance: number = this.derriveLuminanceUsingLight(color.luminance, ratio), isLight = true;
 
-		if (targetLuminance < 0)
+		if (targetLuminance < 0) {
+			isLight = false
 			targetLuminance = this.derriveLuminanceUsingDark(color.luminance, ratio);
+		}
 		if (targetLuminance > 1) {
 			console.warn("Algorithm failed. " + color.hex);
 
@@ -264,22 +309,48 @@ export default class Theme {
 			targetLuminance = crWithBlack > crWithWhite ? 0 : 1;
 		}
 
-		let h = (best: ColorEntry, entry: ColorEntry) => {
-			let [bestHue, bestSaturation] = RGBToHSL(best.rgb),
-				[hue, saturation] = RGBToHSL(entry.rgb);
-			return (
-				diff(color.hsl[1], bestSaturation) < diff(color.hsl[1], saturation) &&
-				diff(color.hsl[0], bestHue) < diff(color.hsl[0], hue)
-			);
-		};
+		let best: ColorEntry;
+		let variance = 0.04;
+		let optionsIndex = 0;
 
-		let targetColor = getColorEntry(targetLuminance, h)?.rgb;
-		if (!targetColor)
+
+		for (let option of this.colors) {
+			if (isLight) {
+				if (!(option.luminance <= targetLuminance && option.luminance > targetLuminance - variance)) {
+					continue
+				}
+			} else {
+				if (!(option.luminance >= targetLuminance && option.luminance < targetLuminance + variance)) {
+					continue
+				}
+			}
+
+			this.colorOptions[optionsIndex++] = option
+			if (optionsIndex >= this.colorOptions.length) {
+				break
+			}
+		}
+
+		if (optionsIndex == 0) {
+			// this is a fallback that is not sufficiently contrasting
 			return this.initColorWithVariants(
 				targetLuminance < color.luminance ? this.BLACK_RGB : this.WHITE_RGB
 			);
+		}
 
-		return this.initColorWithVariants(targetColor);
+		best = this.colorOptions[0];
+		for (let i = 1; i < optionsIndex; i++) {
+			let entry = this.colorOptions[i];
+			let [bestHue, bestSaturation] = RGBToHSL(best.rgb),
+				[hue, saturation] = RGBToHSL(entry.rgb);
+
+			if (diff(color.hsl[1], bestSaturation) < diff(color.hsl[1], saturation) &&
+				diff(color.hsl[0], bestHue) > diff(color.hsl[0], hue)) {
+				best = entry
+			}
+		}
+
+		return this.initColorWithVariants(best.rgb)
 	}
 
 	static stripThemeToHexValues(theme: Theme): HexOnlyTheme {
@@ -331,20 +402,6 @@ export function sumRGB(rgb: RGBColor): number {
 
 export function diff(n1: number, n2: number) {
 	return Math.max(n1, n2) - Math.min(n1, n2);
-}
-
-export function getColorEntry(
-	targetLuminance: number,
-	h?: (best: ColorEntry, entry: ColorEntry, i: number) => boolean
-): undefined | ColorEntry {
-	const LUM_DISTANCE = 0.0025;
-	const entries = colors.filter(({ luminance }) =>
-		numsAreClose(luminance, targetLuminance, LUM_DISTANCE)
-	);
-
-	if (!h) return entries[0];
-
-	return entries.reduce((best, entry, i) => (h(best, entry, i) ? entry : best), entries[0]);
 }
 
 export function flattenObject<T extends {}>(obj: T, parentKey = "") {
