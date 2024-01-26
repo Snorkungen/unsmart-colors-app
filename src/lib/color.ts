@@ -95,14 +95,11 @@ export const createColorVariant = ([red, green, blue, alpha]: RGBColor, modifier
 }
 
 export const colorLuminance = ([red, green, blue]: RGBColor) => {
-    const a = [red, green, blue].map((n) => {
-        n /= 255;
-        return n <= 0.03928 ?
-            n / 12.92 :
-            Math.pow((n + 0.055) / 1.055, 2.4)
-    });
+    red = (red & 0xff) / 255; red = red <= 0.03928 ? red / 12.92 : ((red + 0.055) / 1.055) ** 2.4
+    green = (green & 0xff) / 255; green = green <= 0.03928 ? green / 12.92 : ((green + 0.055) / 1.055) ** 2.4
+    blue = (blue & 0xff) / 255; blue = blue <= 0.03928 ? blue / 12.92 : ((blue + 0.055) / 1.055) ** 2.4
 
-    return (a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722);
+    return (red * 0.2126 + green * 0.7152 + blue * 0.0722);
 }
 const contrastRatio = (c1: RGBColor, c2: RGBColor) => {
     let l1 = colorLuminance(c1),
@@ -127,30 +124,16 @@ export const contrastingColor = (rgb: RGBColor) => {
         }
         attempts++;
     }
-
+    
     if (attempts == attemptLimit) {
         return rgb
     }
-
+    
     return result;
 }
 
-export const RGBToLuminance = ([red, green, blue]: RGBColor): number => {
-    // https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color#answer-56678483
 
-    let linear = (val: number) => val <= 0.04045 ?
-        val / 12.92 :
-        Math.pow((val + 0.055) / 1.055, 2.4);
-
-    let vR = red / 255,
-        vG = green / 255,
-        vB = blue / 255;
-
-    return (
-        0.2126 * linear(vR) + 0.7152 * linear(vG) + 0.0722 * linear(vB)
-    );
-}
-
+export const RGBToLuminance = colorLuminance;
 export * from "./hsl";
 
 /*
