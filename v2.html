@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script defer src="index.js"></script>
+    <style>
+        :root {
+            --primary-0: rgb(9, 6, 40);
+            --primary-1: rgb(60, 45, 215);
+            --primary-2: rgb(175, 170, 225);
+
+            --text-color: var(--primary-2);
+            --background-color: rgb(0, 0, 5);
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+
+            padding: 0;
+            margin: 0;
+
+            font-family: 'Courier New', Courier, monospace;
+
+            transition: all ease 10ms;
+        }
+
+        .page-container {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: all ease 10ms;
+            height: 100%;
+            width: 100%;
+
+            overflow: auto;
+            position: relative;
+
+            display: flex;
+            flex-direction:column;
+            justify-content: space-between;
+        }
+
+        header h1 {
+            color : var(--primary-1);
+        }
+
+        header {
+            /* background-color: var(--primary-2);
+            color: var(--primary-0); */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 2em;
+
+            border-bottom: 4px solid var(--primary-1);
+        }
+
+        header button {
+            border: 2px solid transparent;
+            background-color: var(--primary-2);
+            color: var(--primary-0);
+            padding: 0.2em;
+
+            border-radius: 0.2em;
+
+        }
+
+        header button:hover {
+            border-color: var(--primary-1);
+        }
+
+        main {
+            height: 100%;
+            overflow: auto;
+            padding: 1em;
+            margin-bottom: 1em;
+        }
+
+        main .card {
+            padding:  1em;
+            border-radius: 1em;
+            
+            
+            background-color: var(--text-color);
+            color: var(--background-color);
+
+            box-shadow: 0 0 0.53em 0 var(--text-color);
+            
+
+            border: var(--text-color) 2px solid;
+            /* what is needed? a slightly brighter or darker background color */
+
+        }
+
+        footer {
+            border-top: 4px solid var(--primary-1);
+
+            /* background-color: var(--primary-2);
+            color: var(--primary-0); */
+
+            background-color: var(--background-color);
+
+            /* position: fixed;
+            bottom: 0; */
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-container">
+        <header>
+            <h1>Lorem, ipsum.</h1>
+            <nav>
+                <button>Button</button>
+                <button>Button</button>
+                <button>Button</button>
+            </nav>
+        </header>
+        <main>
+            <h1>Lorem, ipsum dolor.</h1>
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Temporibus adipisci harum eveniet quia odio officiis alias rem et expedita in! Placeat, fugiat non officiis aliquid voluptates quia pariatur, iusto, sed officia repellat ad. Excepturi blanditiis eaque neque porro non, dicta in modi fugiat laudantium. Animi cum nesciunt quos obcaecati consequatur.</p>
+            <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sequi culpa provident necessitatibus earum aliquid itaque at voluptatum alias. Minus vero rem aliquam. Perferendis, quae, quisquam quos doloribus fuga exercitationem quo quas aliquam eligendi dolorem magni. Pariatur soluta aliquid minima sint deserunt odio! Itaque totam magni facilis velit, odit nulla pariatur.</p>
+            <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officiis quae hic facere, quod voluptate sunt voluptas omnis excepturi beatae, quis id obcaecati sequi veniam tempora mollitia, alias doloribus sed praesentium minus repellendus? Quas cupiditate, iusto quia rem harum nesciunt non.</p>
+            <div class="card">
+                <h2>Lorem ipsum dolor sit.</h2>
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quidem sit error nulla. Eveniet unde expedita libero accusamus ea dolores excepturi debitis voluptatem et explicabo, quibusdam minus quasi odio quos a aspernatur nobis voluptates laborum dolorem quo recusandae autem placeat? Voluptatibus exercitationem laudantium modi! Voluptatem modi magni alias est iusto earum dolore quasi fuga consectetur excepturi iste eveniet praesentium, voluptate velit?</p>
+            </div>
+            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sed, impedit hic. Consequatur veniam saepe quis harum ducimus vitae fugit repudiandae, esse, commodi in a maiores laboriosam enim ipsa totam, perferendis earum doloremque nobis quaerat at obcaecati dolorem cum veritatis! Earum similique sed minima totam perspiciatis vitae ex cumque perferendis incidunt eaque rem at, officia id quae distinctio sequi labore odio numquam delectus aspernatur excepturi. Reiciendis sit rerum, dolor quae nihil corrupti animi voluptates voluptatibus odio, rem accusamus, quod aut quis.</p>
+        </main>
+        <footer>
+            <h2>unsmart-colors-app <span>2024</span></h2>
+        </footer>
+    </div>
+</body>
+
+</html>
